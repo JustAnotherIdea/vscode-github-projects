@@ -1,11 +1,14 @@
-<script>
+<script lang="ts">
   import Collaborators from "./Collaborators.svelte";
   import { ApolloClient, InMemoryCache } from "@apollo/client";
   import { setClient } from "svelte-apollo";
+  import { getVsCodeApi } from '../utils/vscode';
+
+  const vscode = getVsCodeApi();
 
   let filterInclude = ["Repository"];
 
-  $: ext_vscode.postMessage({ type: "onChangeFilter", value: filterInclude });
+  $: vscode.postMessage({ type: "onChangeFilter", value: filterInclude });
 
   let menu = [
     "Personal Profile",
@@ -40,7 +43,7 @@
     }
   });
   // send message as soon as sidebar loads.
-  ext_vscode.postMessage({ type: "onSignIn", value: "success" });
+  vscode.postMessage({ type: "onSignIn", value: "success" });
 
   let client;
 
@@ -61,21 +64,24 @@
 {#if !session}
   <div>
     <p>Sign in with GitHub to get started.</p>
-    <button
-      on:click={() => {
-        //send message to SidebarProvider.ts
-        ext_vscode.postMessage({ type: "onSignIn", value: "success" });
-      }}
-    >
-      Sign in with GitHub
-    </button>
+    {#if vscode}
+      <button
+        on:click={() => {
+          vscode.postMessage({ type: "onSignIn", value: "success" });
+        }}
+      >
+        Sign in with GitHub
+      </button>
+    {:else}
+      <p>Error: VS Code API not available</p>
+    {/if}
   </div>
 {:else if !project}
   <div>
     <!-- <button
       on:click={() => {
         //send message to SidebarProvider.ts
-        ext_vscode.postMessage({ type: 'onSignIn', value: 'noNotification' });
+        vscode.postMessage({ type: 'onSignIn', value: 'noNotification' });
       }}
       class="seeProjectsButton"
     >

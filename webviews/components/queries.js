@@ -48,22 +48,16 @@ export const SWITCH_CARD_COLUMN = gql`
   }
 `;
 
-export const CONVERT_CARD_TO_ISSUE = gql`
-  mutation CONVERT_CARD_TO_ISSUE(
-    $body: String
-    $projectCardId: ID!
-    $repositoryId: ID!
-    $title: String
-  ) {
-    convertProjectCardNoteToIssue(
-      input: {
-        body: $body
-        projectCardId: $projectCardId
-        repositoryId: $repositoryId
-        title: $title
+export const CREATE_ISSUE = gql`
+  mutation CreateIssue($repositoryId: ID!, $title: String!, $body: String) {
+    createIssue(input: {
+      repositoryId: $repositoryId,
+      title: $title,
+      body: $body
+    }) {
+      issue {
+        id
       }
-    ) {
-      clientMutationId
     }
   }
 `;
@@ -99,48 +93,50 @@ export const EDIT_COLUMN = gql`
 export const GET_CONTAINER_WITH_PROJECT = gql`
   query GetContainerWithProject {
     viewer {
-      name
-      organizations(first: 100) {
+      login
+      projectsV2(first: 20) {
         nodes {
           id
-          name
-          login
-          projects(first: 100) {
-            nodes {
-              name
-              body
-              number
-              closed
-            }
-          }
+          title
+          shortDescription
+          number
+          closed
+          url
         }
       }
-      repositories(
-        affiliations: [OWNER, ORGANIZATION_MEMBER, COLLABORATOR]
-        first: 100
-      ) {
+      repositories(first: 20) {
         nodes {
           id
           name
           owner {
             login
           }
-          projects(first: 100) {
+          projectsV2(first: 20) {
             nodes {
-              name
-              body
+              id
+              title
+              shortDescription
               number
               closed
+              url
             }
           }
         }
       }
-      projects(first: 100) {
+      organizations(first: 20) {
         nodes {
-          name
-          body
-          number
-          closed
+          id
+          login
+          projectsV2(first: 20) {
+            nodes {
+              id
+              title
+              shortDescription
+              number
+              closed
+              url
+            }
+          }
         }
       }
     }
@@ -150,136 +146,219 @@ export const GET_CONTAINER_WITH_PROJECT = gql`
 export const GET_REPO_PROJECT_INFO = gql`
   query GetRepoProjectInfo($name: String!, $owner: String!, $number: Int!) {
     repository(name: $name, owner: $owner) {
-      id
-      project(number: $number) {
+      projectV2(number: $number) {
         id
-        name
-        body
+        title
+        shortDescription
         url
-        columns(first: 100) {
+        fields(first: 20) {
+          nodes {
+            ... on ProjectV2FieldCommon {
+              id
+              name
+              __typename
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              __typename
+              options {
+                id
+                name
+                __typename
+              }
+            }
+          }
+        }
+        items(first: 100) {
           nodes {
             id
-            name
-            cards(first: 100) {
+            fieldValues(first: 100) {
               nodes {
-                content {
-                  ...fieldsIssue
-                  ...fieldsPR
+                __typename
+                ... on ProjectV2ItemFieldTextValue {
+                  text
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                      __typename
+                    }
+                  }
                 }
-                id
-                note
-                isArchived
-                state
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                      __typename
+                    }
+                  }
+                }
+              }
+            }
+            content {
+              ... on DraftIssue {
+                title
+              }
+              ... on Issue {
+                title
+                url
+              }
+              ... on PullRequest {
+                title
+                url
               }
             }
           }
         }
       }
     }
-    rateLimit {
-      limit
-      cost
-      remaining
-      resetAt
-    }
-  }
-
-  fragment fieldsIssue on Issue {
-    title
-    url
-  }
-
-  fragment fieldsPR on PullRequest {
-    title
-    url
   }
 `;
 
 export const GET_ORG_PROJECT_INFO = gql`
   query GetOrgProjectInfo($login: String!, $number: Int!) {
     organization(login: $login) {
-      project(number: $number) {
+      projectV2(number: $number) {
         id
-        name
-        body
+        title
+        shortDescription
         url
-        columns(first: 100) {
+        fields(first: 20) {
+          nodes {
+            ... on ProjectV2FieldCommon {
+              id
+              name
+              __typename
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              __typename
+              options {
+                id
+                name
+                __typename
+              }
+            }
+          }
+        }
+        items(first: 100) {
           nodes {
             id
-            name
-            cards(first: 100) {
+            fieldValues(first: 100) {
               nodes {
-                content {
-                  ...fieldsIssue
-                  ...fieldsPR
+                __typename
+                ... on ProjectV2ItemFieldTextValue {
+                  text
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                      __typename
+                    }
+                  }
                 }
-                id
-                note
-                isArchived
-                state
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                      __typename
+                    }
+                  }
+                }
+              }
+            }
+            content {
+              ... on DraftIssue {
+                title
+              }
+              ... on Issue {
+                title
+                url
+              }
+              ... on PullRequest {
+                title
+                url
               }
             }
           }
         }
       }
     }
-    rateLimit {
-      limit
-      cost
-      remaining
-      resetAt
-    }
-  }
-  fragment fieldsIssue on Issue {
-    title
-    url
-  }
-  fragment fieldsPR on PullRequest {
-    title
-    url
   }
 `;
 
 export const GET_USER_PROJECT_INFO = gql`
   query GetUserProjectInfo($number: Int!) {
     viewer {
-      project(number: $number) {
+      projectV2(number: $number) {
         id
-        name
-        body
+        title
+        shortDescription
         url
-        columns(first: 100) {
+        fields(first: 20) {
+          nodes {
+            ... on ProjectV2FieldCommon {
+              id
+              name
+              __typename
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              __typename
+              options {
+                id
+                name
+                __typename
+              }
+            }
+          }
+        }
+        items(first: 100) {
           nodes {
             id
-            name
-            cards(first: 100) {
+            fieldValues(first: 100) {
               nodes {
-                content {
-                  ...fieldsIssue
-                  ...fieldsPR
+                __typename
+                ... on ProjectV2ItemFieldTextValue {
+                  text
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                      __typename
+                    }
+                  }
                 }
-                id
-                note
-                isArchived
-                state
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                  field {
+                    ... on ProjectV2FieldCommon {
+                      name
+                      __typename
+                    }
+                  }
+                }
+              }
+            }
+            content {
+              ... on DraftIssue {
+                title
+              }
+              ... on Issue {
+                title
+                url
+              }
+              ... on PullRequest {
+                title
+                url
               }
             }
           }
         }
       }
     }
-    rateLimit {
-      limit
-      cost
-      remaining
-      resetAt
-    }
-  }
-  fragment fieldsIssue on Issue {
-    title
-  }
-  fragment fieldsPR on PullRequest {
-    title
   }
 `;
 
@@ -306,3 +385,34 @@ export const GET_ORG_MEMBERS = gql`
     }
   }
 `;
+
+export const ADD_PROJECT_V2_ITEM = gql`
+  mutation AddProjectV2Item($projectId: ID!, $contentId: ID!) {
+    addProjectV2Item(input: { projectId: $projectId, contentId: $contentId }) {
+      item {
+        id
+      }
+    }
+  }
+`;
+
+export const DELETE_PROJECT_V2_ITEM = gql`
+  mutation DeleteProjectV2Item($itemId: ID!) {
+    deleteProjectV2Item(input: { projectId: $itemId }) {
+      deletedItemId
+    }
+  }
+`;
+
+export const UPDATE_PROJECT_V2_ITEM_FIELD = gql`
+  mutation UpdateProjectV2ItemField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: String!) {
+    updateProjectV2ItemField(
+      input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: $value }
+    ) {
+      projectV2Item {
+        id
+      }
+    }
+  }
+`;
+

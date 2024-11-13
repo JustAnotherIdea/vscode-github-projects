@@ -1,6 +1,11 @@
 {
   "extends": "@tsconfig/svelte/tsconfig.json",
-  "include": ["./**/*", ],
+  "include": ["./**/*"],
   "exclude": ["../node_modules/*"],
-  "compilerOptions": {"strict": true, }
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["DOM", "ES2020"],
+    "types": ["svelte"],
+    "typeRoots": ["../node_modules/@types"]
+  }
 }

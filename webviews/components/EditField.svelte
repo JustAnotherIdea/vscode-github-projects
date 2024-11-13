@@ -1,33 +1,58 @@
 <script>
-
-  import { getContext } from "svelte";
+  import { getContext } from 'svelte';
   export let message, handlers;
-  import Check from "svelte-material-icons/Check.svelte";
-  import Close from "svelte-material-icons/Close.svelte";
-  const { close } = getContext("simple-modal");
+  const { close } = getContext('simple-modal');
+  let note = message.note;
+  let error = null;
 
-  let text = message.note;
+  const editCard = async () => {
+    try {
+      if (!note.trim()) {
+        error = "Title cannot be empty";
+        return;
+      }
 
-  const closeAdd = () => {
-    handlers.cardMutations(message.card_info, "editCard", { note: text });
-    close();
+      // Update the title field value
+      await handlers.cardMutations(message.card_info, "editTitle", {
+        title: note
+      });
+      close();
+    } catch (e) {
+      error = e.message;
+    }
   };
 
-  const closePop = () => {
+  const handleCancel = () => {
     close();
   };
 </script>
 
 <div style="margin-top: 0.4rem">
-  <input bind:value={text} />
-  <div
-    style="display: flex; flex-direction: row; justify-content: space-around; margin-top: 0.4rem"
-  >
-    <div on:click={closeAdd} style="cursor: pointer;">
-      <Check height="20" width="20" />
+  {#if error}
+    <div class="error" style="color: red; margin-bottom: 10px;">
+      {error}
     </div>
-    <div on:click={closePop} style="cursor: pointer;">
-      <Close height="20" width="20" />
-    </div>
+  {/if}
+
+  <input 
+    bind:value={note} 
+    placeholder="Enter new title" 
+    style="width: 100%; margin-bottom: 10px; padding: 5px;"
+  />
+  
+  <div style="display: flex; flex-direction: row; width: 100%;">
+    <button 
+      on:click={editCard} 
+      style="width:50%; margin-right: 5px;"
+      disabled={!note.trim()}
+    >
+      Save
+    </button>
+    <button 
+      on:click={handleCancel} 
+      style="width:50%"
+    >
+      Cancel
+    </button>
   </div>
 </div>

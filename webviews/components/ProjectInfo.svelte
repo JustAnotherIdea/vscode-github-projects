@@ -5,58 +5,183 @@
   import * as queries from "./queries.js";
   import KeyboardBackspace from "svelte-material-icons/KeyboardBackspace.svelte";
 
-  export let type, name, owner, login, number;
+  export let type = '', name = '', owner = '', login = '', number = 0;
 
   const dispatch = createEventDispatcher();
 
-  const projectInfo =
+  const projectInfo = query(
     type === "repo"
-      ? query(queries.GET_REPO_PROJECT_INFO, {
-          variables: {
-            name: name,
-            owner: owner,
-            number: parseInt(number),
-          },
-          pollInterval: 1800,
-        })
+      ? queries.GET_REPO_PROJECT_INFO
       : type === "org"
-      ? query(queries.GET_ORG_PROJECT_INFO, {
-          variables: {
-            login: login,
-            number: parseInt(number),
-          },
-          pollInterval: 1800,
-        })
-      : query(queries.GET_USER_PROJECT_INFO, {
-          variables: {
-            number: parseInt(number),
-          },
-          pollInterval: 1800,
-        });
+      ? queries.GET_ORG_PROJECT_INFO
+      : queries.GET_USER_PROJECT_INFO,
+    {
+      variables:
+        type === "repo"
+          ? { name, owner, number }
+          : type === "org"
+          ? { login, number }
+          : { number },
+      pollInterval: 5000,
+    }
+  );
 
   let project;
-  let repoId;
-
+  let fields = [];
+  let items = [];
+  let statusField;
   let columns = [];
 
   $: {
     if ($projectInfo.data) {
+      console.log("Project Info Data:", $projectInfo.data);
       project =
         type === "repo"
-          ? $projectInfo.data.repository.project
+          ? $projectInfo.data.repository.projectV2
           : type === "org"
-          ? $projectInfo.data.organization.project
-          : $projectInfo.data.viewer.project;
+          ? $projectInfo.data.organization.projectV2
+          : $projectInfo.data.viewer.projectV2;
+      
+      console.log("Project:", project);
 
-      if (project.columns) {
-        columns = project.columns.nodes.map((column) => ({
-          name: column.name,
-          cards: column.cards ? column.cards.nodes : null,
-          id: column.id,
-        }));
+      if (project) {
+        fields = project.fields.nodes;
+        items = project.items.nodes;
+        
+        console.log("Fields:", fields);
+        console.log("Items:", items);
+        
+        statusField = fields.find(f => {
+          console.log("Checking field:", f);
+          return f?.__typename === "ProjectV2SingleSelectField" && 
+                 f?.name?.toLowerCase?.()?.includes("status");
+        });
+        
+        console.log("Status Field:", statusField);
+
+        if (statusField) {
+          console.log("Status Field Options:", statusField.options);
+          columns = statusField.options.map(option => {
+            const cards = items.filter(item => {
+              const fieldValues = item.fieldValues?.nodes || [];
+              return fieldValues.some(fv => 
+                fv?.__typename === "ProjectV2ItemFieldSingleSelectValue" &&
+                fv?.name === option.name
+              );
+            }).map(item => ({
+              id: item.id,
+              content: {
+                title: item.content.title,
+                __typename: item.content.__typename
+              },
+              fieldValues: {
+                nodes: item.fieldValues.nodes
+              },
+              __typename: item.__typename
+            }));
+            
+            console.log(`Cards for column ${option.name}:`, cards);
+            
+            return {
+              id: option.id,
+              name: option.name,
+              cards
+            };
+          });
+          console.log("Generated Columns:", columns);
+        }
       }
+    }
+  }
 
-      repoId = type === "repo" ? $projectInfo.data.repository.id : null;
+  // Card mutations for Projects V2
+  const addItem = mutation(queries.ADD_PROJECT_V2_ITEM);
+  const deleteItem = mutation(queries.DELETE_PROJECT_V2_ITEM);
+  const updateItemField = mutation(queries.UPDATE_PROJECT_V2_ITEM_FIELD);
+  const convertToIssue = mutation(queries.CREATE_ISSUE);
+
+  async function handleCardMutations(card, request, payload) {
+    try {
+      switch (request) {
+        case "addCard":
+          addItem({
+            variables: {
+              projectId: project.id,
+              contentId: null,
+              fieldId: statusField.id,
+              value: payload.columnId
+            },
+          });
+          break;
+
+        case "deleteCard":
+          deleteItem({ 
+            variables: { 
+              projectId: project.id,
+              itemId: card.id 
+            } 
+          });
+          break;
+
+        case "editCard":
+          updateItemField({
+            variables: {
+              projectId: project.id,
+              itemId: card.id,
+              fieldId: statusField.id,
+              value: payload.columnId
+            },
+          });
+          break;
+
+        case "convertToIssue":
+          // Step 1: Create the issue
+          const { data: issueData } = await mutation(queries.CREATE_ISSUE)({
+            variables: {
+              repositoryId: repoId,
+              title: payload.title,
+              body: payload.body
+            }
+          });
+          
+          if (issueData?.createIssue?.issue?.id) {
+            // Step 2: Add the issue to the project
+            await addItem({
+              variables: {
+                projectId: project.id,
+                contentId: issueData.createIssue.issue.id
+              }
+            });
+
+            // Step 3: Delete the original draft item
+            await deleteItem({ 
+              variables: { 
+                projectId: project.id,
+                itemId: card.id 
+              } 
+            });
+          }
+          break;
+
+        case "editTitle":
+          updateItemField({
+            variables: {
+              projectId: project.id,
+              itemId: card.id,
+              fieldId: fields.find(f => 
+                f.__typename === "ProjectV2FieldTextValue" && 
+                f.name.toLowerCase() === "title"
+              ).id,
+              value: payload.title
+            },
+          });
+          break;
+
+        default:
+          break;
+      }
+    } catch (error) {
+      console.log(error.message);
     }
   }
 
@@ -65,161 +190,6 @@
       projectInfo.stopPolling();
     } else if (event.detail.payload === "startPoll") {
       projectInfo.startPolling(1800);
-    }
-  }
-
-  // Card mutations
-  const addCard = mutation(queries.ADD_CARD);
-  const deleteCard = mutation(queries.DELETE_CARD);
-  const editCard = mutation(queries.EDIT_CARD);
-  const switchCardColumn = mutation(queries.SWITCH_CARD_COLUMN);
-  const convertCardToIssue = mutation(queries.CONVERT_CARD_TO_ISSUE);
-
-  // Column mutations
-  const addColumn = mutation(queries.ADD_COLUMN);
-  const deleteColumn = mutation(queries.DELETE_COLUMN);
-  const editColumn = mutation(queries.EDIT_COLUMN);
-
-  // Project mutations
-  const addProject = mutation(queries.ADD_PROJECT);
-  const closeProject = mutation(queries.CLOSE_PROJECT);
-  const editProject = mutation(queries.EDIT_PROJECT);
-
-  async function handleCardMutations(card, request, payload) {
-    try {
-      switch (request) {
-        case "addCard":
-          // TODO: Use ContentID to link card to an Issue or a PR
-          addCard({
-            variables: {
-              contentId: null,
-              note: payload.note,
-              projectColumnId: payload.colId,
-            },
-          });
-          break;
-
-        case "deleteCard":
-          deleteCard({ variables: { cardId: card.id } });
-          break;
-
-        case "editCard":
-          let isArchived = card.isArchived;
-          if (payload.switchArchive) {
-            isArchived = !isArchived;
-          }
-          if (payload.override != undefined) {
-            isArchived = payload.override;
-          }
-          editCard({
-            variables: {
-              isArchived: isArchived,
-              note: payload.note,
-              projectCardId: card.id,
-            },
-          });
-          break;
-
-        case "switchCardColumn":
-          // TODO: This is untested, use payload to add a `toColumn` parameter
-          switchCardColumn({
-            variables: {
-              afterCardId: payload.afterCardId,
-              cardId: card.id,
-              columnId: payload.colId,
-            },
-          });
-          break;
-
-        case "convertCardToIssue":
-          if (!repoId) {
-            throw Error("Cannot convert non-repository cards to issues.");
-          }
-          let title = null;
-          if (payload.title) {
-            title = payload.title;
-          }
-          convertCardToIssue({
-            variables: {
-              body: payload.body,
-              projectCardId: card.id,
-              repositoryId: repoId,
-              title: title,
-            },
-          });
-          break;
-
-        default:
-          break;
-      }
-    } catch (error) {
-      // TODO: this throws an error:
-      // ext_vscode.postMessage({ type: "onError", value: error.message });
-      console.log(error.message);
-    }
-  }
-
-  // override variable for archiving
-  let overrideArchived = false;
-  async function handleColumnMutations(column, request, payload) {
-    try {
-      switch (request) {
-        case "addColumn":
-          addColumn({
-            variables: { name: payload.name, projectId: payload.projId },
-          });
-          break;
-
-        case "deleteColumn":
-          deleteColumn({ variables: { columnId: column.id } });
-          break;
-
-        case "editColumn":
-          editColumn({
-            variables: { name: payload.name, projectColumnId: column.id },
-          });
-          break;
-
-        case "switchColumnArchive":
-          overrideArchived = !overrideArchived;
-          column.cards.nodes.forEach((card) => {
-            let archivePayload = { override: overrideArchived };
-            handleCardMutations(card, "editCard", archivePayload);
-          });
-          break;
-
-        default:
-          break;
-      }
-    } catch (error) {
-      // TODO: this throws an error:
-      // ext_vscode.postMessage({ type: "onError", value: error.message });
-      console.log(error.message);
-    }
-  }
-
-  async function handleProjectMutations(project, request, payload) {
-    try {
-      switch (request) {
-        case "addProject":
-          addProject(payload);
-          break;
-
-        case "closeProject":
-          closeProject(project);
-          break;
-
-        case "editProject":
-          editProject(project, payload);
-          break;
-
-        default:
-          break;
-      }
-    } catch (error) {
-      // TODO: this throws an error:
-      // ext_vscode.postMessage({ type: "onError", value: error.message });
-      console.log(error.message);
     }
   }
 
@@ -236,37 +206,27 @@
 {:else if $projectInfo.error}
   Error: {$projectInfo.error.message}
 {:else}
-  <div on:click={handleBackPressed} style="cursor: pointer; width: 25px">
+  <div 
+    on:click={handleBackPressed} 
+    on:keydown={(e) => e.key === 'Enter' && handleBackPressed()}
+    role="button"
+    tabindex="0"
+    style="cursor: pointer; width: 25px"
+  >
     <KeyboardBackspace width="25" height="25" />
   </div>
 
-  <div
-    style="display: flex; flex-direction: row; justify-content: space-between; overflow-x: scroll;"
-  >
-    <div style="display: flex; flex-direction: column">
-      <h1>{project.name}</h1>
-      <h2>{project.body}</h2>
-    </div>
-    <div
-      style="display: flex; flex-direction: row; justify-content: flex-start; margin:16px 0px;"
-    >
-    <a href={project.url}>
-      <button style="min-width: 7rem; margin-right:8px;">
-        View in GitHub
-      </button>
-    </a>
-      <button style="min-width: 7rem;"> Close Project </button>
-    </div>
+  <div style="display: flex; flex-direction: column">
+    <h1>{project.title}</h1>
+    <h2>{project.shortDescription}</h2>
+    <Board 
+      {project}
+      {columns}
+      {statusField}
+      {fields}
+      handlers={{
+        cardMutations: handleCardMutations
+      }}
+    />
   </div>
-
-  <Board
-    project={project}
-    allColumns={columns}
-    handlers={{
-      cardMutations: handleCardMutations,
-      columnMutations: handleColumnMutations,
-      projectMutations: handleProjectMutations,
-    }}
-    on:message={handleMessage}
-  />
 {/if}

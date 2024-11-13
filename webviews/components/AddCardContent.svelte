@@ -3,6 +3,8 @@
   import AddCard from './AddCard.svelte';
   export let column, handlers;
   const { open } = getContext('simple-modal');
+  let note = "";
+  let error = null;
 
   const add_card = () => {
     open(AddCard, { handlers: handlers, message: column }, {closeButton: ""});

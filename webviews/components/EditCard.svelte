@@ -8,10 +8,9 @@
   const dispatch = createEventDispatcher();
 
   const edit_card = () => {
-    //open popup
     open(
       EditField,
-      {handlers: handlers, message: {note, card_info, column_info} },
+      { handlers: handlers, message: { note, card_info, column_info } },
       { closeButton: "" },
       {
         onOpen: () => {
@@ -29,10 +28,11 @@
   };
 
   const convertToIssue = () => {
-    open(ConvertIssue,
-    { handlers: handlers, message: {note, card_info, column_info} },
-    { closeButton: "" },
-    {
+    open(
+      ConvertIssue,
+      { handlers: handlers, message: { note, card_info, column_info } },
+      { closeButton: "" },
+      {
         onOpen: () => {
           dispatch("message", {
             payload: "stopDrag",

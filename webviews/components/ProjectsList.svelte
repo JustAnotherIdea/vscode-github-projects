@@ -16,6 +16,7 @@
 
   $: {
     if ($containersInfo.data) {
+      console.log("Data:", $containersInfo.data);
       containers = [];
       if (filters.includes("Personal Profile")) {
         let newUser = addType($containersInfo.data.viewer, "user");
@@ -34,8 +35,7 @@
         $containersInfo.data.viewer.organizations &&
         filters.includes("Organization")
       ) {
-        for (let organization of $containersInfo.data.viewer.organizations
-          .nodes) {
+        for (let organization of $containersInfo.data.viewer.organizations.nodes) {
           let newOrg = addType(organization, "org");
           containers = [...containers, newOrg];
         }
@@ -54,6 +54,7 @@
           });
         }
       });
+      console.log("Containers:", containers);
     }
   }
 
@@ -65,9 +66,11 @@
   }
 
   function addType(data, type) {
+    console.log(`Adding type ${type} to:`, data);
     return {
       ...data,
       type: type,
+      projects: data.projectsV2 || { nodes: [] }
     };
   }
 </script>
@@ -78,15 +81,23 @@
   Error: {$containersInfo.error.message}
 {:else}
   {#each containers as container, index}
-    {#if indexes.includes(index)}
-      <h3>{container.name}</h3>
-      {#each container.projects.nodes as project}
-        {#if filters.includes("Include Closed Projects") || !project.closed}
-          <button on:click={handleSelectProject(container, project)}
-            >{project.name}</button
+    {#if container.projects?.nodes?.length > 0}
+      <div>
+        <h3>{container.name || 'Unnamed Container'}</h3>
+        {#each container.projects.nodes as project}
+          <div 
+            on:click={() => handleSelectProject(container, project)}
+            style="cursor: pointer; padding: 8px; margin: 4px 0; border: 1px solid #ccc;"
           >
-        {/if}
-      {/each}
+            <p>{project.title || 'Untitled Project'}</p>
+            {#if project.shortDescription}
+              <p style="font-size: 0.9em; color: #666;">
+                {project.shortDescription}
+              </p>
+            {/if}
+          </div>
+        {/each}
+      </div>
     {/if}
   {/each}
 {/if}

@@ -4,26 +4,29 @@
   import { createEventDispatcher } from "svelte";
   import Modal from "svelte-simple-modal";
   import AddCardContent from "./AddCardContent.svelte";
-  import AddCol from "./AddCol.svelte";
 
-  export let allColumns, project;
+  export let project;
+  export let columns;
+  export let statusField;
+  export let fields;
   export let handlers;
 
   let prevColumns = [];
   let filteredColumns = [];
-
   let draggable = true;
 
   $: {
-    if (prevColumns !== allColumns) {
-      prevColumns = allColumns;
-      filteredColumns = [];
-      for (let column of allColumns) {
-        if (column.cards) {
-          column.cards = column.cards.filter((card) => !card.isArchived);
-          filteredColumns.push(column);
-        }
-      }
+    if (prevColumns !== columns) {
+      prevColumns = columns;
+      filteredColumns = columns.map(column => ({
+        ...column,
+        cards: (column.cards || []).filter(card => 
+          !(card.fieldValues?.nodes || []).some(fv => 
+            fv?.__typename === "ProjectV2ItemFieldSingleSelectValue" &&
+            fv?.name?.toLowerCase?.()?.includes("archived")
+          )
+        )
+      }));
     }
   }
 
@@ -49,7 +52,6 @@
     });
 
     const colIndex = filteredColumns.findIndex((column) => column.id === colId);
-
     filteredColumns[colIndex].cards = e.detail.items;
     filteredColumns = [...filteredColumns];
   }
@@ -60,18 +62,12 @@
     });
 
     const colIndex = filteredColumns.findIndex((column) => column.id === colId);
+    const newCard = filteredColumns[colIndex].cards.filter(x => !e.detail.items.includes(x))[0];
 
-    let new_card = filteredColumns[colIndex].cards.filter(x => !e.detail.items.includes(x))[0]
-    let afterCardId = null;
-    if (new_card) {
-      e.detail.items.forEach((element, index) => {
-        if (element.id === new_card.id) {
-          if(index > 0) {
-            afterCardId = e.detail.items[index - 1].id;
-          }
-        }
+    if (newCard) {
+      handlers.cardMutations(newCard, "editCard", { 
+        columnId: colId
       });
-      handlers.cardMutations(new_card, "switchCardColumn", { afterCardId: afterCardId, colId: colId });
     }
 
     filteredColumns[colIndex].cards = e.detail.items;
@@ -86,7 +82,7 @@
     } else if (event.detail.payload === "startDrag") {
       cardsOpen++;
     }
-    if (cardsOpen == 0) {
+    if (cardsOpen === 0) {
       draggable = true;
     } else {
       draggable = false;
@@ -100,7 +96,6 @@
     use:dndzone={{
       items: filteredColumns,
       type: "columns",
-      // TODO: Enable dragging feature when implemented.
       dragDisabled: true,
     }}
     on:consider={handleConsiderColumns}
@@ -111,26 +106,47 @@
         <h2>{column.name}</h2>
         <div
           style="height: 100%;
-        overflow-y: scroll;
-        min-height: 30rem;
-        margin-bottom: 0.4rem"
+          overflow-y: scroll;
+          min-height: 30rem;
+          margin-bottom: 0.4rem"
           use:dndzone={{ items: column.cards, dragDisabled: !draggable }}
           on:consider={(e) => handleConsiderCards(column.id, e)}
           on:finalize={(e) => handleFinalizeCards(column.id, e)}
         >
           {#if column.cards}
             {#each column.cards as card (card.id)}
-              <Card {card} {column} {handlers} on:message={handleMessage} />
+              <Card 
+                card_info={card} 
+                column_info={{ 
+                  id: column.id,
+                  name: column.name,
+                  statusField: statusField
+                }}
+                {handlers}
+                on:message={handleMessage}
+              />
             {/each}
           {/if}
         </div>
         <Modal>
-          <AddCardContent {column} {handlers}/>
+          <AddCardContent {column} {handlers} />
         </Modal>
       </div>
     {/each}
-    <Modal>
-      <AddCol {handlers} {project} />
-    </Modal>
   </div>
 </div>
+
+<style>
+  .board {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .column {
+    background: #f0f0f0;
+    border-radius: 4px;
+    min-width: 250px;
+    padding: 1rem;
+  }
+</style>

@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 const GITHUB_AUTH_PROVIDER_ID = "github";
 // The GitHub Authentication Provider accepts the scopes described here:
 // https://developer.github.com/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/
-const SCOPES = ["user", "repo", "write:org"];
+const SCOPES = ["user", "repo", "write:org", "project"];
 
 export class Credentials {
   private session: vscode.AuthenticationSession | undefined;

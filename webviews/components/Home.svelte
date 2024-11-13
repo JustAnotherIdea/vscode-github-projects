@@ -4,6 +4,9 @@
   import { setClient } from "svelte-apollo";
   import ProjectsList from "./ProjectsList.svelte";
   import ProjectInfo from "./ProjectInfo.svelte";
+  import { getVsCodeApi } from '../utils/vscode';
+
+  const vscode = getVsCodeApi();
 
   let session;
 
@@ -28,7 +31,7 @@
 
   $: {
     if (!session) {
-      ext_vscode.postMessage({
+      vscode.postMessage({
         type: "getSession",
       });
     }
@@ -50,7 +53,7 @@
   function handleMessage(event) {
     selectedContainer = event.detail.container;
     selectedProject = event.detail.project;
-    ext_vscode.postMessage({
+    vscode.postMessage({
       type: "onChooseProject",
       value: { project: selectedProject, container: selectedContainer },
     });

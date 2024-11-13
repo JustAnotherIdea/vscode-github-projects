@@ -1,13 +1,21 @@
 <script>
-  export let card_info, handlers;
+  export let card_info, column_info, handlers;
+
   const deleteCard = () => {
     handlers.cardMutations(card_info, "deleteCard");
   };
 
   const archiveCard = () => {
-    handlers.cardMutations(card_info, "editCard", { switchArchive: true });
-  }
+    const archivedStatus = column_info.statusField.options.find(opt => 
+      opt.name.toLowerCase().includes("archived")
+    );
 
+    if (archivedStatus) {
+      handlers.cardMutations(card_info, "editCard", { 
+        columnId: archivedStatus.i
+      });
+    }
+  };
 </script>
 
 <div>
