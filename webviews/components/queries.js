@@ -405,9 +405,19 @@ export const DELETE_PROJECT_V2_ITEM = gql`
 `;
 
 export const UPDATE_PROJECT_V2_ITEM_FIELD = gql`
-  mutation UpdateProjectV2ItemField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $value: String!) {
-    updateProjectV2ItemField(
-      input: { projectId: $projectId, itemId: $itemId, fieldId: $fieldId, value: $value }
+  mutation UpdateProjectV2ItemFieldValue(
+    $projectId: ID!
+    $itemId: ID!
+    $fieldId: ID!
+    $value: String!
+  ) {
+    updateProjectV2ItemFieldValue(
+      input: {
+        projectId: $projectId
+        itemId: $itemId
+        fieldId: $fieldId
+        value: { singleSelectOptionId: $value }
+      }
     ) {
       projectV2Item {
         id
