@@ -1,5 +1,12 @@
 <script>
+  import { getContext, createEventDispatcher } from "svelte";
   import IssueCard from "./IssueCard.svelte";
+  import ConvertIssue from "./ConvertIssue.svelte";
+  import Modal from "svelte-simple-modal";
+  
+  const { open } = getContext("simple-modal");
+  const dispatch = createEventDispatcher();
+  
   export let card_info, column_info, handlers;
   
   // Get the title/content from the card's field values
@@ -57,90 +64,174 @@
   };
 
   const convertToIssue = () => {
-    handlers.cardMutations(card_info, "convertToIssue", {
-      title: title,
-      body: ""
-    });
+    console.log("Converting to issue with title:", title);
+    console.log("Card info:", card_info);
+    console.log("Column info:", column_info);
+    
+    open(ConvertIssue, 
+      {
+        message: { 
+          card_info, 
+          column_info, 
+          note: title 
+        },
+        handlers
+      }
+    );
   };
 </script>
 
-{#if title || content}
-<div
-  style="border-style: solid;
-        border-color: white;
-        border-width: 1px;
-        border-radius: 5px;
-        padding: 1rem 1rem 1rem 1rem;
-        margin-top: 1rem;"
->
-  {#if title}
-    <div>
-      {#if isEditing}
-        {#if error}
-          <div class="error" style="color: red; margin-bottom: 10px;">
-            {error}
-          </div>
-        {/if}
-        <input 
-          bind:value={editedTitle} 
-          placeholder="Enter title" 
-          style="width: 100%; margin-bottom: 10px; padding: 5px;"
-        />
-        <div style="display:flex; flex-direction: row; margin-top:5px;">
-          <button on:click={handleSave} style="margin-right:5px;" disabled={!editedTitle.trim()}>
-            Save
-          </button>
-          <button on:click={deleteCard} style="margin-right:5px;">
-            Delete
-          </button>
-          <button on:click={archiveCard} style="margin-right:5px;">
-            Archive
-          </button>
-          <button on:click={convertToIssue}>
-            Convert to Issue
-          </button>
-          <button on:click={handleCancel}>
-            Cancel
-          </button>
+<div class="mt-4">
+  {#if title || content}
+    <div class="border border-vscode-foreground rounded p-4 mt-4">
+      {#if title}
+        <div>
+          {#if isEditing}
+            {#if error}
+              <div class="text-vscode-error mb-2.5">
+                {error}
+              </div>
+            {/if}
+            <input 
+              bind:value={editedTitle} 
+              placeholder="Enter title" 
+              class="w-full mb-2.5 p-1.5 bg-vscode-background text-vscode-foreground border border-vscode-foreground rounded"
+            />
+            <div class="flex flex-row mt-1.5 gap-1.5">
+              <button 
+                on:click={handleSave} 
+                class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded disabled:opacity-50"
+                disabled={!editedTitle.trim()}
+              >
+                Save
+              </button>
+              <button 
+                on:click={deleteCard} 
+                class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded"
+              >
+                Delete
+              </button>
+              <button 
+                on:click={archiveCard} 
+                class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded"
+              >
+                Archive
+              </button>
+              <button 
+                on:click={convertToIssue} 
+                class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded"
+              >
+                Convert to Issue
+              </button>
+              <button 
+                on:click={handleCancel} 
+                class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          {:else}
+            <p>{title}</p>
+            <div class="flex flex-row mt-1.5">
+              <button 
+                on:click={() => isEditing = true} 
+                class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded"
+              >
+                Edit
+              </button>
+            </div>
+          {/if}
         </div>
-      {:else}
-        <p>{title}</p>
-        <div style="display:flex; flex-direction: row; margin-top:5px;">
-          <button on:click={() => isEditing = true} style="margin-right:5px;">
-            Edit
-          </button>
+      {:else if content}
+        <div class="flex flex-row w-full justify-between">
+          <p>{content.title}</p>
+          <p class="border border-vscode-foreground rounded px-1.5 py-0.5 ml-0.5 mt-0.5">
+            <a class="no-underline text-vscode-link" href={content.url}>
+              {content.__typename}
+            </a>
+          </p>
         </div>
+        <IssueCard {card_info} {column_info} {handlers} />
       {/if}
     </div>
-  {:else if content}
-    <div
-      style="display: flex; flex-direction: row; width: 100%; justify-content: space-between;"
-    >
-      <p>{content.title}</p>
-      <p
-        style="height: 5%; border-style: solid; border-radius: 5px; padding:2px 5px 2px 5px; border-width: 1px; margin-left: 0.2rem; margin-top: 0.2rem;"
-      >
-        <a style="text-decoration: none" href={content.url}>
-          {content.__typename}
-        </a>
-      </p>
+  {:else}
+    <div class="no-permissions">
+      <p>You don't have permissions to view this item.</p>
     </div>
-    <IssueCard 
-      card_info={card_info} 
-      column_info={column_info}
-      handlers={handlers} 
-    />
   {/if}
 </div>
-{:else}
-<div
-  style="border-style: solid;
-  border-color: white;
-  border-width: 1px;
-  border-radius: 5px;
-  padding: 1rem 1rem 1rem 1rem;
-  margin-top: 1rem;"  
->
-  <p>You don't have permissions to view this item.</p>
-</div>
-{/if}
+
+<style>
+  .card-container {
+    margin-top: 1rem;
+  }
+
+  .card-content {
+    border: 1px solid var(--vscode-editor-foreground);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .error-message {
+    color: var(--vscode-errorForeground);
+    margin-bottom: 10px;
+  }
+
+  .title-input {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 5px;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+  }
+
+  .button-row {
+    display: flex;
+    flex-direction: row;
+    margin-top: 5px;
+    gap: 5px;
+  }
+
+  .action-button {
+    background: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+
+  .action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .content-header {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .content-type {
+    height: 5%;
+    border: 1px solid var(--vscode-editor-foreground);
+    border-radius: 5px;
+    padding: 2px 5px;
+    margin-left: 0.2rem;
+    margin-top: 0.2rem;
+  }
+
+  .content-link {
+    text-decoration: none;
+    color: var(--vscode-textLink-foreground);
+  }
+
+  .no-permissions {
+    border: 1px solid var(--vscode-editor-foreground);
+    border-radius: 5px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+</style>

@@ -313,11 +313,6 @@ export const GET_USER_PROJECT_INFO = gql`
               }
               __typename
             }
-            ... on ProjectV2IterationField {
-              id
-              name
-              __typename
-            }
           }
         }
         items(first: 100) {
@@ -330,13 +325,13 @@ export const GET_USER_PROJECT_INFO = gql`
               }
               ... on Issue {
                 title
-                __typename
                 url
+                __typename
               }
               ... on PullRequest {
                 title
-                __typename
                 url
+                __typename
               }
             }
             fieldValues(first: 20) {
@@ -360,6 +355,12 @@ export const GET_USER_PROJECT_INFO = gql`
               }
             }
           }
+        }
+      }
+      repositories(first: 100) {
+        nodes {
+          id
+          name
         }
       }
     }

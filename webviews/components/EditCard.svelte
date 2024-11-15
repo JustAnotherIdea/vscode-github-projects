@@ -66,10 +66,30 @@
 </script>
 
 <div>
-  <div style="display:flex; flex-direction: row; margin-top:5px;">
-    <button on:click={edit_card} style="margin-right:5px;">Edit</button>
-    <button on:click={deleteCard} style="margin-right:5px;"> Delete </button>
-    <button on:click={archiveCard} style="margin-right:5px;"> Archive </button>
-    <button on:click={convertToIssue}>Convert to Issue</button>
+  <div class="flex flex-row mt-1.5 gap-1.5">
+    <button 
+      on:click={edit_card} 
+      class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded"
+    >
+      Edit
+    </button>
+    <button 
+      on:click={deleteCard} 
+      class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded"
+    >
+      Delete
+    </button>
+    <button 
+      on:click={archiveCard} 
+      class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded"
+    >
+      Archive
+    </button>
+    <button 
+      on:click={convertToIssue} 
+      class="bg-vscode-button text-vscode-button-foreground px-2 py-1 rounded"
+    >
+      Convert to Issue
+    </button>
   </div>
 </div>

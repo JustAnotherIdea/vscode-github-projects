@@ -4,6 +4,7 @@
   import { createEventDispatcher } from "svelte";
   import * as queries from "./queries.js";
   import KeyboardBackspace from "svelte-material-icons/KeyboardBackspace.svelte";
+  import Modal from "svelte-simple-modal";
 
   export let type = '', name = '', owner = '', login = '', number = 0;
 
@@ -157,31 +158,62 @@
           break;
 
         case "convertToIssue":
-          // Step 1: Create the issue
-          const { data: issueData } = await mutation(queries.CREATE_ISSUE)({
-            variables: {
+          try {
+            console.log("Starting convertToIssue mutation");
+            console.log("Project data:", project);
+            
+            // Get repository ID - first check if it's a repository project
+            let repoId = $projectInfo.data?.repository?.id;
+            
+            // If no repository ID found (user/org project), we need to specify a repository
+            if (!repoId) {
+              // Show repository picker dialog
+              const result = await vscode.window.showQuickPick(
+                $projectInfo.data.viewer.repositories.nodes.map(repo => ({
+                  label: repo.name,
+                  id: repo.id
+                })),
+                {
+                  placeHolder: 'Select a repository to create the issue in'
+                }
+              );
+              
+              if (!result) {
+                throw new Error('No repository selected');
+              }
+              
+              repoId = result.id;
+            }
+
+            console.log("Using repository ID:", repoId);
+            
+            if (!repoId) {
+              throw new Error('Repository ID not found');
+            }
+
+            console.log("Creating issue with params:", {
               repositoryId: repoId,
               title: payload.title,
               body: payload.body
-            }
-          });
-          
-          if (issueData?.createIssue?.issue?.id) {
-            // Step 2: Add the issue to the project
-            await addItem({
-              variables: {
-                projectId: project.id,
-                contentId: issueData.createIssue.issue.id
-              }
             });
 
-            // Step 3: Delete the original draft item
-            await deleteItem({ 
-              variables: { 
-                projectId: project.id,
-                itemId: card.id 
-              } 
+            // Create the issue
+            const { data: issueData } = await convertToIssue({
+              variables: {
+                repositoryId: repoId,
+                title: payload.title,
+                body: payload.body
+              }
             });
+            
+            if (!issueData?.createIssue?.issue?.id) {
+              throw new Error('Failed to create issue');
+            }
+            
+            console.log("Issue creation response:", issueData);
+          } catch (error) {
+            console.error("Error in convertToIssue:", error);
+            throw error;
           }
           break;
 
@@ -239,27 +271,60 @@
 {:else if $projectInfo.error}
   Error: {$projectInfo.error.message}
 {:else}
-  <div 
-    on:click={handleBackPressed} 
-    on:keydown={(e) => e.key === 'Enter' && handleBackPressed()}
-    role="button"
-    tabindex="0"
-    style="cursor: pointer; width: 25px"
-  >
-    <KeyboardBackspace width="25" height="25" />
-  </div>
+  <Modal>
+    <div 
+      on:click={handleBackPressed} 
+      on:keydown={(e) => e.key === 'Enter' && handleBackPressed()}
+      role="button"
+      tabindex="0"
+      class="back-button"
+    >
+      <KeyboardBackspace />
+    </div>
 
-  <div style="display: flex; flex-direction: column">
-    <h1>{project.title}</h1>
-    <h2>{project.shortDescription}</h2>
-    <Board 
-      {project}
-      {columns}
-      {statusField}
-      {fields}
-      handlers={{
-        cardMutations: handleCardMutations
-      }}
-    />
-  </div>
+    <div class="project-container">
+      <h1 class="project-title">{project.title}</h1>
+      {#if project.shortDescription}
+        <h2 class="project-description">{project.shortDescription}</h2>
+      {/if}
+      <Board 
+        {project}
+        {columns}
+        {statusField}
+        {fields}
+        handlers={{
+          cardMutations: handleCardMutations
+        }}
+      />
+    </div>
+  </Modal>
 {/if}
+
+<style>
+  .back-button {
+    cursor: pointer;
+    width: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 1rem;
+  }
+  
+  .project-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .project-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  .project-description {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--vscode-descriptionForeground);
+  }
+</style>
