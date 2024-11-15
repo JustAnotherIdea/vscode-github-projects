@@ -12,7 +12,7 @@
 
     if (archivedStatus) {
       handlers.cardMutations(card_info, "editCard", { 
-        columnId: archivedStatus.i
+        columnId: archivedStatus.id
       });
     }
   };

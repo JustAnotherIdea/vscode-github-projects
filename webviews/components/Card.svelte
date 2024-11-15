@@ -1,9 +1,7 @@
 <script>
-  import Modal from "svelte-simple-modal";
-  import EditCard from "./EditCard.svelte";
   import IssueCard from "./IssueCard.svelte";
   export let card_info, column_info, handlers;
-
+  
   // Get the title/content from the card's field values
   let title = card_info.content?.title || card_info.fieldValues?.nodes?.find(
     fv => fv?.__typename === "ProjectV2ItemFieldTextValue"
@@ -11,6 +9,59 @@
 
   // Get any linked content (issue/PR)
   let content = card_info.content;
+  
+  // Edit mode state
+  let isEditing = false;
+  let editedTitle = title;
+  let error = null;
+
+  async function handleSave() {
+    try {
+      if (!editedTitle.trim()) {
+        error = "Title cannot be empty";
+        return;
+      }
+
+      await handlers.cardMutations(card_info, "editTitle", {
+        title: editedTitle
+      });
+      
+      error = null;
+      isEditing = false;
+      title = editedTitle;
+    } catch (e) {
+      error = e.message;
+    }
+  }
+
+  function handleCancel() {
+    isEditing = false;
+    editedTitle = title;
+    error = null;
+  }
+
+  const deleteCard = () => {
+    handlers.cardMutations(card_info, "deleteCard");
+  };
+
+  const archiveCard = () => {
+    const archivedStatus = column_info.statusField.options.find(opt => 
+      opt.name.toLowerCase().includes("archived")
+    );
+
+    if (archivedStatus) {
+      handlers.cardMutations(card_info, "editCard", { 
+        columnId: archivedStatus.id
+      });
+    }
+  };
+
+  const convertToIssue = () => {
+    handlers.cardMutations(card_info, "convertToIssue", {
+      title: title,
+      body: ""
+    });
+  };
 </script>
 
 {#if title || content}
@@ -24,16 +75,42 @@
 >
   {#if title}
     <div>
-      <p>{title}</p>
-      <Modal>
-        <EditCard 
-          card_info={card_info} 
-          column_info={column_info} 
-          note={title} 
-          handlers={handlers} 
-          on:message
+      {#if isEditing}
+        {#if error}
+          <div class="error" style="color: red; margin-bottom: 10px;">
+            {error}
+          </div>
+        {/if}
+        <input 
+          bind:value={editedTitle} 
+          placeholder="Enter title" 
+          style="width: 100%; margin-bottom: 10px; padding: 5px;"
         />
-      </Modal>
+        <div style="display:flex; flex-direction: row; margin-top:5px;">
+          <button on:click={handleSave} style="margin-right:5px;" disabled={!editedTitle.trim()}>
+            Save
+          </button>
+          <button on:click={deleteCard} style="margin-right:5px;">
+            Delete
+          </button>
+          <button on:click={archiveCard} style="margin-right:5px;">
+            Archive
+          </button>
+          <button on:click={convertToIssue}>
+            Convert to Issue
+          </button>
+          <button on:click={handleCancel}>
+            Cancel
+          </button>
+        </div>
+      {:else}
+        <p>{title}</p>
+        <div style="display:flex; flex-direction: row; margin-top:5px;">
+          <button on:click={() => isEditing = true} style="margin-right:5px;">
+            Edit
+          </button>
+        </div>
+      {/if}
     </div>
   {:else if content}
     <div
@@ -48,13 +125,11 @@
         </a>
       </p>
     </div>
-    <Modal>
-      <IssueCard 
-        card_info={card_info} 
-        column_info={column_info}
-        handlers={handlers} 
-      />
-    </Modal>
+    <IssueCard 
+      card_info={card_info} 
+      column_info={column_info}
+      handlers={handlers} 
+    />
   {/if}
 </div>
 {:else}

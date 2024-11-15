@@ -299,7 +299,7 @@ export const GET_USER_PROJECT_INFO = gql`
         url
         fields(first: 20) {
           nodes {
-            ... on ProjectV2FieldCommon {
+            ... on ProjectV2Field {
               id
               name
               __typename
@@ -307,52 +307,56 @@ export const GET_USER_PROJECT_INFO = gql`
             ... on ProjectV2SingleSelectField {
               id
               name
-              __typename
               options {
                 id
                 name
-                __typename
               }
+              __typename
+            }
+            ... on ProjectV2IterationField {
+              id
+              name
+              __typename
             }
           }
         }
         items(first: 100) {
           nodes {
             id
-            fieldValues(first: 100) {
-              nodes {
+            content {
+              ... on DraftIssue {
+                title
                 __typename
+              }
+              ... on Issue {
+                title
+                __typename
+                url
+              }
+              ... on PullRequest {
+                title
+                __typename
+                url
+              }
+            }
+            fieldValues(first: 20) {
+              nodes {
                 ... on ProjectV2ItemFieldTextValue {
                   text
                   field {
-                    ... on ProjectV2FieldCommon {
+                    ... on ProjectV2Field {
                       name
-                      __typename
                     }
                   }
                 }
                 ... on ProjectV2ItemFieldSingleSelectValue {
                   name
                   field {
-                    ... on ProjectV2FieldCommon {
+                    ... on ProjectV2SingleSelectField {
                       name
-                      __typename
                     }
                   }
                 }
-              }
-            }
-            content {
-              ... on DraftIssue {
-                title
-              }
-              ... on Issue {
-                title
-                url
-              }
-              ... on PullRequest {
-                title
-                url
               }
             }
           }
@@ -409,14 +413,14 @@ export const UPDATE_PROJECT_V2_ITEM_FIELD = gql`
     $projectId: ID!
     $itemId: ID!
     $fieldId: ID!
-    $value: String!
+    $text: String!
   ) {
     updateProjectV2ItemFieldValue(
       input: {
         projectId: $projectId
         itemId: $itemId
         fieldId: $fieldId
-        value: { singleSelectOptionId: $value }
+        value: { text: $text }
       }
     ) {
       projectV2Item {

@@ -102,9 +102,28 @@
 
   async function handleCardMutations(card, request, payload) {
     try {
+      if (!project?.id) {
+        throw new Error('Project ID is undefined');
+      }
+
+      if (!statusField?.id) {
+        throw new Error('Status field ID is undefined');
+      }
+
+      if (!card && request !== "addCard") {
+        throw new Error('Card is undefined');
+      }
+
+      if (!card?.id && request !== "addCard") {
+        throw new Error('Card ID is undefined');
+      }
+
       switch (request) {
         case "addCard":
-          addItem({
+          if (!payload?.columnId) {
+            throw new Error('Column ID is undefined');
+          }
+          await addItem({
             variables: {
               projectId: project.id,
               contentId: null,
@@ -115,7 +134,7 @@
           break;
 
         case "deleteCard":
-          deleteItem({ 
+          await deleteItem({ 
             variables: { 
               projectId: project.id,
               itemId: card.id 
@@ -124,7 +143,10 @@
           break;
 
         case "editCard":
-          updateItemField({
+          if (!payload?.columnId) {
+            throw new Error('Column ID is undefined');
+          }
+          await updateItemField({
             variables: {
               projectId: project.id,
               itemId: card.id,
@@ -164,15 +186,25 @@
           break;
 
         case "editTitle":
-          updateItemField({
+          console.log("Available fields:", fields);
+          
+          const titleField = fields.find(f => 
+            f.name === "Title" && 
+            f.__typename === "ProjectV2Field"
+          );
+          
+          console.log("Found title field:", titleField);
+          
+          if (!titleField?.id) {
+            throw new Error('Title field not found');
+          }
+          
+          await updateItemField({
             variables: {
               projectId: project.id,
               itemId: card.id,
-              fieldId: fields.find(f => 
-                f.__typename === "ProjectV2FieldTextValue" && 
-                f.name.toLowerCase() === "title"
-              ).id,
-              value: payload.title
+              fieldId: titleField.id,
+              text: payload.title
             },
           });
           break;
@@ -181,7 +213,8 @@
           break;
       }
     } catch (error) {
-      console.log(error.message);
+      console.error('Card mutation error:', error);
+      throw error; // Re-throw to allow handling by the caller
     }
   }
 

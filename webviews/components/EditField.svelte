@@ -16,14 +16,20 @@
       await handlers.cardMutations(message.card_info, "editTitle", {
         title: note
       });
-      close();
+      
+      // Force close the modal
+      if (close) {
+        close();
+      }
     } catch (e) {
       error = e.message;
     }
   };
 
   const handleCancel = () => {
-    close();
+    if (close) {
+      close();
+    }
   };
 </script>
 
