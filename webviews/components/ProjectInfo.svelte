@@ -178,15 +178,15 @@
       on:keydown={(e) => e.key === 'Enter' && handleBackPressed()}
       role="button"
       tabindex="0"
-      class="back-button"
+      class="w-6 cursor-pointer flex items-center justify-start mb-4"
     >
       <KeyboardBackspace />
     </div>
 
-    <div class="project-container">
-      <h1 class="project-title">{project.title}</h1>
+    <div class="flex flex-col gap-4">
+      <h1 class="m-0 text-2xl font-semibold">{project.title}</h1>
       {#if project.shortDescription}
-        <h2 class="project-description">{project.shortDescription}</h2>
+        <h2 class="m-0 text-base text-vscode-descriptionForeground">{project.shortDescription}</h2>
       {/if}
       <Board 
         {project}
@@ -200,32 +200,3 @@
     </div>
   </Modal>
 {/if}
-
-<style>
-  .back-button {
-    cursor: pointer;
-    width: 25px;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-bottom: 1rem;
-  }
-  
-  .project-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .project-title {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-  }
-
-  .project-description {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--vscode-descriptionForeground);
-  }
-</style>

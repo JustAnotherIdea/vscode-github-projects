@@ -6,6 +6,7 @@ import sveltePreprocess from "svelte-preprocess";
 import typescript from "@rollup/plugin-typescript";
 import path from "path";
 import fs from "fs";
+import postcss from 'rollup-plugin-postcss';
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -23,21 +24,24 @@ export default fs
       },
       plugins: [
         svelte({
-          // enable run-time checks when not in production
           dev: !production,
-          // we'll extract any component CSS out into
-          // a separate file - better for performance
-          css: (css) => {
-            css.write(name + ".css");
-          },
-          preprocess: sveltePreprocess(),
+          emitCss: true,
+          preprocess: sveltePreprocess({
+            postcss: {
+              plugins: [
+                require('tailwindcss'),
+                require('autoprefixer'),
+              ]
+            }
+          }),
         }),
-
-        // If you have external dependencies installed from
-        // npm, you'll most likely need these plugins. In
-        // some cases you'll need additional configuration -
-        // consult the documentation for details:
-        // https://github.com/rollup/plugins/tree/master/packages/commonjs
+        postcss({
+          extract: 'tailwind.css',
+          plugins: [
+            require('tailwindcss'),
+            require('autoprefixer')
+          ]
+        }),
         resolve({
           browser: true,
           dedupe: ["svelte"],
@@ -48,21 +52,7 @@ export default fs
           sourceMap: !production,
           inlineSources: !production,
         }),
-
-        // In dev mode, call `npm run start` once
-        // the bundle has been generated
-        // !production && serve(),
-
-        // Watch the `public` directory and refresh the
-        // browser on changes when not in production
-        // !production && livereload("public"),
-
-        // If we're building for production (npm run build
-        // instead of npm run dev), minify
-        production && terser(),
+        production && terser()
       ],
-      watch: {
-        clearScreen: false,
-      },
     };
   });

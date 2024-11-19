@@ -87,11 +87,14 @@
         {#each container.projects.nodes as project}
           <div 
             on:click={() => handleSelectProject(container, project)}
-            style="cursor: pointer; padding: 8px; margin: 4px 0; border: 1px solid #ccc;"
+            on:keydown={(e) => e.key === 'Enter' && handleSelectProject(container, project)}
+            class="cursor-pointer p-2 my-1 border border-vscode-foreground rounded hover:bg-vscode-button-hover"
+            role="button"
+            tabindex="0"
           >
             <p>{project.title || 'Untitled Project'}</p>
             {#if project.shortDescription}
-              <p style="font-size: 0.9em; color: #666;">
+              <p class="text-sm text-vscode-description">
                 {project.shortDescription}
               </p>
             {/if}
@@ -102,9 +105,3 @@
   {/each}
 {/if}
 
-<style>
-  button {
-    text-align: left;
-    margin: 5px, 5px, 5px, 5px;
-  }
-</style>

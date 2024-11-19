@@ -33,9 +33,9 @@
   };
 </script>
 
-<div style="margin-top: 0.4rem">
+<div class="mt-1.5">
   {#if error}
-    <div class="error" style="color: red; margin-bottom: 10px;">
+    <div class="text-vscode-error mb-2.5">
       {error}
     </div>
   {/if}
@@ -43,20 +43,20 @@
   <input 
     bind:value={note} 
     placeholder="Enter new title" 
-    style="width: 100%; margin-bottom: 10px; padding: 5px;"
+    class="w-full mb-2.5 p-1.5 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border rounded"
   />
   
-  <div style="display: flex; flex-direction: row; width: 100%;">
+  <div class="flex flex-row w-full">
     <button 
       on:click={editCard} 
-      style="width:50%; margin-right: 5px;"
+      class="w-1/2 mr-1.5 px-2 py-1 bg-vscode-button text-vscode-button-foreground rounded hover:bg-vscode-button-hoverBackground disabled:opacity-50 disabled:cursor-not-allowed"
       disabled={!note.trim()}
     >
       Save
     </button>
     <button 
       on:click={handleCancel} 
-      style="width:50%"
+      class="w-1/2 px-2 py-1 bg-vscode-button text-vscode-button-foreground rounded hover:bg-vscode-button-hoverBackground"
     >
       Cancel
     </button>

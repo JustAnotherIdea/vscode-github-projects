@@ -40,73 +40,31 @@
   };
 </script>
 
-<style>
-  .modal-container {
-    padding: 1rem;
-    background: var(--vscode-editor-background);
-    color: var(--vscode-editor-foreground);
-    border-radius: 4px;
-  }
-  
-  .modal-title {
-    font-size: 1.2em;
-    margin-bottom: 1rem;
-  }
-  
-  .modal-body {
-    margin-bottom: 1rem;
-  }
-  
-  .modal-textarea {
-    width: 100%;
-    min-height: 100px;
-    margin-bottom: 1rem;
-    background: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border);
-    padding: 0.5rem;
-  }
-  
-  .modal-error {
-    color: var(--vscode-errorForeground);
-    margin-bottom: 1rem;
-  }
-  
-  .modal-buttons {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-  }
-  
-  .modal-button {
-    padding: 0.5rem 1rem;
-    background: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    border-radius: 2px;
-    cursor: pointer;
-  }
-  
-  .modal-button:hover {
-    background: var(--vscode-button-hoverBackground);
-  }
-</style>
-
-<div class="modal-container">
-  <div class="modal-title">Convert to Issue</div>
-  <div class="modal-body">
-    <p>Title: {message?.note}</p>
-    <textarea
-      class="modal-textarea"
-      bind:value={body}
-      placeholder="Enter issue description (optional)"
-    ></textarea>
+<div class="p-4 bg-vscode-background text-vscode-foreground rounded">
+  <div class="text-xl mb-4">Convert to Issue</div>
+  <div class="mb-4">
+    <p class="mb-2">Title: {message?.note}</p>
     {#if error}
-      <div class="modal-error">{error}</div>
+      <p class="text-vscode-error mb-4">{error}</p>
     {/if}
-  </div>
-  <div class="modal-buttons">
-    <button class="modal-button" on:click={convertIssue}>Convert</button>
-    <button class="modal-button" on:click={close}>Cancel</button>
+    <textarea
+      bind:value={body}
+      placeholder="Enter issue description"
+      class="w-full min-h-[100px] mb-4 p-2 bg-vscode-input-background text-vscode-input-foreground border border-vscode-input-border rounded"
+    />
+    <div class="flex justify-end gap-2">
+      <button 
+        on:click={convertIssue}
+        class="px-4 py-2 bg-vscode-button text-vscode-button-foreground rounded hover:bg-vscode-button-hoverBackground"
+      >
+        Convert
+      </button>
+      <button 
+        on:click={close}
+        class="px-4 py-2 bg-vscode-button text-vscode-button-foreground rounded hover:bg-vscode-button-hoverBackground"
+      >
+        Cancel
+      </button>
+    </div>
   </div>
 </div>

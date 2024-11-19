@@ -90,9 +90,9 @@
   }
 </script>
 
-<div style="display: flex; flex-direction: row; overflow-x:scroll;">
+<div class="flex flex-row overflow-x-auto">
   <div
-    style="display: flex; flex-direction: row;"
+    class="flex flex-row"
     use:dndzone={{
       items: filteredColumns,
       type: "columns",
@@ -102,13 +102,10 @@
     on:finalize={handleFinalizeColumns}
   >
     {#each filteredColumns as column (column.id)}
-      <div class="project-column">
+      <div class="border border-white rounded-md flex flex-col p-4 mr-4 overflow-y-hidden min-h-[30rem] max-h-full min-w-[20rem] w-1/4">
         <h2>{column.name}</h2>
         <div
-          style="height: 100%;
-          overflow-y: scroll;
-          min-height: 30rem;
-          margin-bottom: 0.4rem"
+          class="h-full overflow-y-auto min-h-[30rem] mb-1"
           use:dndzone={{ items: column.cards, dragDisabled: !draggable }}
           on:consider={(e) => handleConsiderCards(column.id, e)}
           on:finalize={(e) => handleFinalizeCards(column.id, e)}
@@ -135,18 +132,3 @@
     {/each}
   </div>
 </div>
-
-<style>
-  .board {
-    display: flex;
-    gap: 1rem;
-    padding: 1rem;
-  }
-  
-  .column {
-    background: #f0f0f0;
-    border-radius: 4px;
-    min-width: 250px;
-    padding: 1rem;
-  }
-</style>

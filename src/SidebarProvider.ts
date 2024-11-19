@@ -28,9 +28,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [this._extensionUri],
-      enableCommandUris: true,
-      retainContextWhenHidden: true
+      localResourceRoots: [
+        vscode.Uri.joinPath(this._extensionUri, "media"),
+        vscode.Uri.joinPath(this._extensionUri, "out/compiled"),
+      ],
+      enableCommandUris: true
     };
 
     // Use a nonce to only allow a specific script to be run.

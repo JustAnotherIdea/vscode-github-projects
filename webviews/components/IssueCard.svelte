@@ -19,8 +19,18 @@
 </script>
 
 <div>
-  <div style="display:flex; flex-direction: row; margin-top:5px;">
-    <button on:click={deleteCard} style="margin-right:5px;"> Delete </button>
-    <button on:click={archiveCard} > Archive </button>
+  <div class="flex flex-row mt-1.5">
+    <button 
+      on:click={deleteCard} 
+      class="px-2 py-1 mr-1.5 bg-vscode-button text-vscode-button-foreground rounded hover:bg-vscode-button-hoverBackground"
+    >
+      Delete
+    </button>
+    <button 
+      on:click={archiveCard}
+      class="px-2 py-1 bg-vscode-button text-vscode-button-foreground rounded hover:bg-vscode-button-hoverBackground"
+    >
+      Archive
+    </button>
   </div>
 </div>

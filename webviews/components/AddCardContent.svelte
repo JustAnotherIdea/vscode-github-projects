@@ -11,4 +11,11 @@
   };
 </script>
 
-<p><button on:click={add_card} style="width: 100%; margin-top: 5px;">Add Card</button></p>
+<p>
+  <button 
+    on:click={add_card} 
+    class="w-full mt-1.5 px-2 py-1 bg-vscode-button text-vscode-button-foreground rounded hover:bg-vscode-button-hoverBackground"
+  >
+    Add Card
+  </button>
+</p>

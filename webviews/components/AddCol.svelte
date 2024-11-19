@@ -10,4 +10,11 @@
   };
 </script>
 
-<p><button on:click={add_col} style="width: 14rem; margin: 0 8px;"> Add a Column </button></p>
+<p>
+  <button 
+    on:click={add_col} 
+    class="w-56 mx-2 px-4 py-2 bg-vscode-button text-vscode-button-foreground rounded hover:bg-vscode-button-hoverBackground"
+  >
+    Add a Column
+  </button>
+</p>

@@ -46,6 +46,7 @@ export class HomePanel {
         localResourceRoots: [
           vscode.Uri.joinPath(extensionUri, "media"),
           vscode.Uri.joinPath(extensionUri, "out/compiled"),
+          vscode.Uri.joinPath(extensionUri, "webviews/styles")
         ],
         retainContextWhenHidden: true
       }
@@ -172,11 +173,16 @@ export class HomePanel {
     const styleResetUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "media", "reset.css")
     );
+    const styleVSCodeUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css")
+    );
+    const styleTailwindUri = webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "media", "tailwind.css")
+    );
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "out", "compiled/home.js")
     );
     
-    // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
 
     const scriptProcess = `
@@ -194,8 +200,11 @@ export class HomePanel {
       <html lang="en">
         <head>
           <meta charset="UTF-8">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src ${webview.cspSource} 'nonce-${nonce}'; connect-src https://api.github.com;">
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src ${webview.cspSource} 'nonce-${nonce}'; connect-src https://api.github.com;">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <link href="${styleResetUri}" rel="stylesheet">
+          <link href="${styleVSCodeUri}" rel="stylesheet">
+          <link href="${styleTailwindUri}" rel="stylesheet">
           ${scriptProcess}
           <script nonce="${nonce}">
             window.ext_vscode = acquireVsCodeApi();
