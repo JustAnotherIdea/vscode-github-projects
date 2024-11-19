@@ -413,13 +413,11 @@ export const DELETE_PROJECT_V2_ITEM = gql`
 `;
 
 export const ADD_PROJECT_V2_ITEM = gql`
-  mutation AddProjectV2Item($projectId: ID!, $contentId: ID) {
-    addProjectV2Item(
-      input: {
-        projectId: $projectId
-        contentId: $contentId
-      }
-    ) {
+  mutation AddProjectV2DraftIssue($projectId: ID!, $contentId: ID!) {
+    addProjectV2ItemById(input: {
+      projectId: $projectId,
+      contentId: $contentId
+    }) {
       item {
         id
       }

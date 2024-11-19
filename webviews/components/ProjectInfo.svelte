@@ -161,13 +161,48 @@
             throw new Error('No repository found for this project. Please link a repository first.');
           }
 
-          await convertToIssue({
+          // Get the current status of the draft item
+          const currentStatus = card.fieldValues.nodes.find(fv => 
+            fv.__typename === "ProjectV2ItemFieldSingleSelectValue" &&
+            fv.field.name === "Status"
+          );
+
+          // Create the issue first
+          const issueResult = await convertToIssue({
             variables: {
               repositoryId: repository.id,
               title: payload.title,
               body: payload.body
             }
           });
+
+          // Delete the draft item
+          await deleteItem({
+            variables: {
+              projectId: project.id,
+              itemId: card.id
+            }
+          });
+
+          // Add the new issue to the project
+          const newItem = await addItem({
+            variables: {
+              projectId: project.id,
+              contentId: issueResult.data.createIssue.issue.id
+            }
+          });
+
+          // Set the status field to match the original draft item's status
+          if (currentStatus) {
+            await updateItemField({
+              variables: {
+                projectId: project.id,
+                itemId: newItem.data.addProjectV2ItemById.item.id,
+                fieldId: statusField.id,
+                value: { singleSelectOptionId: statusField.options.find(opt => opt.name === currentStatus.name).id }
+              }
+            });
+          }
           break;
       }
     } catch (error) {
