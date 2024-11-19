@@ -232,31 +232,33 @@
 {:else if $projectInfo.error}
   Error: {$projectInfo.error.message}
 {:else}
-  <Modal>
-    <div 
-      on:click={handleBackPressed} 
-      on:keydown={(e) => e.key === 'Enter' && handleBackPressed()}
-      role="button"
-      tabindex="0"
-      class="w-6 cursor-pointer flex items-center justify-start mb-4"
-    >
-      <KeyboardBackspace />
-    </div>
+  <div class="h-screen flex flex-col">
+    <Modal>
+      <div 
+        on:click={handleBackPressed} 
+        on:keydown={(e) => e.key === 'Enter' && handleBackPressed()}
+        role="button"
+        tabindex="0"
+        class="w-6 cursor-pointer flex items-center justify-start mb-4"
+      >
+        <KeyboardBackspace />
+      </div>
 
-    <div class="flex flex-col gap-4">
-      <h1 class="m-0 text-2xl font-semibold">{project.title}</h1>
-      {#if project.shortDescription}
-        <h2 class="m-0 text-base text-vscode-descriptionForeground">{project.shortDescription}</h2>
-      {/if}
-      <Board 
-        {project}
-        {columns}
-        {statusField}
-        {fields}
-        handlers={{
-          cardMutations: handleCardMutations
-        }}
-      />
-    </div>
-  </Modal>
+      <div class="flex-1 flex flex-col gap-4">
+        <h1 class="m-0 text-2xl font-semibold">{project.title}</h1>
+        {#if project.shortDescription}
+          <h2 class="m-0 text-base text-vscode-descriptionForeground">{project.shortDescription}</h2>
+        {/if}
+        <Board 
+          {project}
+          {columns}
+          {statusField}
+          {fields}
+          handlers={{
+            cardMutations: handleCardMutations
+          }}
+        />
+      </div>
+    </Modal>
+  </div>
 {/if}

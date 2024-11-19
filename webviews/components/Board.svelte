@@ -91,46 +91,48 @@
   }
 </script>
 
-<div class="flex flex-row overflow-x-auto">
-  <div
-    class="flex flex-row"
-    use:dndzone={{
-      items: filteredColumns,
-      type: "columns",
-      dragDisabled: true,
-    }}
-    on:consider={handleConsiderColumns}
-    on:finalize={handleFinalizeColumns}
-  >
-    {#each filteredColumns as column (column.id)}
-      <div class="border border-white rounded-md flex flex-col p-4 mr-4 overflow-y-hidden min-h-[30rem] max-h-full min-w-[20rem] w-1/4">
-        <h2>{column.name}</h2>
-        <div
-          class="h-full overflow-y-auto min-h-[30rem] mb-1"
-          use:dndzone={{ items: column.cards, dragDisabled: !draggable }}
-          on:consider={(e) => handleConsiderCards(column.id, e)}
-          on:finalize={(e) => handleFinalizeCards(column.id, e)}
-        >
-          {#if column.cards}
-            {#each column.cards as card (card.id)}
-              <Card 
-                card_info={card} 
-                column_info={{ 
-                  id: column.id,
-                  name: column.name,
-                  statusField: statusField,
-                  project: project
-                }}
-                {handlers}
-                on:message={handleMessage}
-              />
-            {/each}
-          {/if}
+<div class="flex flex-col h-full">
+  <div class="flex-1 h-full flex flex-row overflow-x-auto">
+      <div
+      class="flex flex-row"
+      use:dndzone={{
+        items: filteredColumns,
+        type: "columns",
+        dragDisabled: true,
+      }}
+      on:consider={handleConsiderColumns}
+      on:finalize={handleFinalizeColumns}
+    >
+      {#each filteredColumns as column (column.id)}
+        <div class="flex-shrink-0 border border-white rounded-md flex flex-col p-4 mr-4 overflow-y-hidden min-h-[30rem] max-h-full min-w-[20rem] w-1/4">
+          <h2>{column.name}</h2>
+          <div
+            class="flex-1 h-full overflow-y-auto min-h-[30rem] mb-1"
+            use:dndzone={{ items: column.cards, dragDisabled: !draggable }}
+            on:consider={(e) => handleConsiderCards(column.id, e)}
+            on:finalize={(e) => handleFinalizeCards(column.id, e)}
+          >
+            {#if column.cards}
+              {#each column.cards as card (card.id)}
+                <Card 
+                  card_info={card} 
+                  column_info={{ 
+                    id: column.id,
+                    name: column.name,
+                    statusField: statusField,
+                    project: project
+                  }}
+                  {handlers}
+                  on:message={handleMessage}
+                />
+              {/each}
+            {/if}
+          </div>
+          <Modal>
+            <AddCardContent {column} {handlers} />
+          </Modal>
         </div>
-        <Modal>
-          <AddCardContent {column} {handlers} />
-        </Modal>
-      </div>
-    {/each}
+      {/each}
+    </div>
   </div>
 </div>
