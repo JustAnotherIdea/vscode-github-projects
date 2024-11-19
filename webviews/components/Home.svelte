@@ -1,4 +1,5 @@
 <script>
+  import "../styles/app.css";
   import { ApolloClient, InMemoryCache } from "@apollo/client";
 
   import { setClient } from "svelte-apollo";

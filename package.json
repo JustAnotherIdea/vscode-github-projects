@@ -48,15 +48,15 @@
 		]
 	},
 	"scripts": {
-		"compile": "webpack --mode development",
-		"watch": "concurrently \"rollup -c -w\" \"webpack --mode development --watch\"",
-		"pretest": "npm run compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js",
-		"vscode:prepublish": "webpack --mode production",
-		"webpack": "rollup -c && webpack --mode development",
-		"tsc-dev": "concurrently \"rollup -c -w\" \"tsc -watch -p ./\"",
-		"test-compile": "tsc -p ./"
+		"vscode:prepublish": "npm run build",
+		"build": "npm run build:extension && npm run build:webview",
+		"build:extension": "webpack --mode production",
+		"build:webview": "rollup -c",
+		"watch": "concurrently \"npm run watch:extension\" \"npm run watch:webview\" \"npm run watch:tailwind\"",
+		"watch:extension": "webpack --mode development --watch",
+		"watch:webview": "rollup -c -w",
+		"watch:tailwind": "tailwindcss -i ./webviews/styles/app.css -o ./out/compiled/tailwind.css --watch",
+		"build:tailwind": "tailwindcss -i ./webviews/styles/app.css -o ./out/compiled/tailwind.css"
 	},
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^17.1.0",

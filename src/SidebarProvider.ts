@@ -35,7 +35,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
       enableCommandUris: true
     };
 
-    // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();
 
     const styleResetUri = webviewView.webview.asWebviewUri(
@@ -44,11 +43,14 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const styleVSCodeUri = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "media", "vscode.css")
     );
+    const styleSidebarUri = webviewView.webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "out", "compiled/sidebar.css")
+    );
+    const styleTailwindUri = webviewView.webview.asWebviewUri(
+      vscode.Uri.joinPath(this._extensionUri, "out", "compiled/tailwind.css")
+    );
     const scriptUri = webviewView.webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, "out", "compiled/sidebar.js")
-    );
-    const styleMainUri = webviewView.webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, "out", "compiled/sidebar.css")
     );
 
     const scriptProcess = `
@@ -70,7 +72,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <link href="${styleResetUri}" rel="stylesheet">
           <link href="${styleVSCodeUri}" rel="stylesheet">
-          <link href="${styleMainUri}" rel="stylesheet">
+          <link href="${styleSidebarUri}" rel="stylesheet">
+          <link href="${styleTailwindUri}" rel="stylesheet">
           ${scriptProcess}
           <script nonce="${nonce}">
             window.ext_vscode = acquireVsCodeApi();

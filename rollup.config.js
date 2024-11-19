@@ -27,20 +27,14 @@ export default fs
           dev: !production,
           emitCss: true,
           preprocess: sveltePreprocess({
-            postcss: {
-              plugins: [
-                require('tailwindcss'),
-                require('autoprefixer'),
-              ]
-            }
+            postcss: true
           }),
         }),
         postcss({
-          extract: 'tailwind.css',
-          plugins: [
-            require('tailwindcss'),
-            require('autoprefixer')
-          ]
+          extract: name + '.css',
+          config: {
+            path: './postcss.config.js'
+          }
         }),
         resolve({
           browser: true,
