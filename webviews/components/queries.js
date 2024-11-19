@@ -391,10 +391,22 @@ export const GET_ORG_MEMBERS = gql`
   }
 `;
 
-export const ADD_PROJECT_V2_ITEM = gql`
-  mutation AddProjectV2Item($projectId: ID!, $contentId: ID!) {
-    addProjectV2Item(input: { projectId: $projectId, contentId: $contentId }) {
-      item {
+export const UPDATE_PROJECT_V2_ITEM_FIELD = gql`
+  mutation UpdateProjectV2ItemField(
+    $projectId: ID!
+    $itemId: ID!
+    $fieldId: ID!
+    $value: ProjectV2FieldValue!
+  ) {
+    updateProjectV2ItemFieldValue(
+      input: {
+        projectId: $projectId
+        itemId: $itemId
+        fieldId: $fieldId
+        value: $value
+      }
+    ) {
+      projectV2Item {
         id
       }
     }
@@ -402,29 +414,27 @@ export const ADD_PROJECT_V2_ITEM = gql`
 `;
 
 export const DELETE_PROJECT_V2_ITEM = gql`
-  mutation DeleteProjectV2Item($itemId: ID!) {
-    deleteProjectV2Item(input: { projectId: $itemId }) {
+  mutation DeleteProjectV2Item($projectId: ID!, $itemId: ID!) {
+    deleteProjectV2Item(
+      input: {
+        projectId: $projectId
+        itemId: $itemId
+      }
+    ) {
       deletedItemId
     }
   }
 `;
 
-export const UPDATE_PROJECT_V2_ITEM_FIELD = gql`
-  mutation UpdateProjectV2ItemFieldValue(
-    $projectId: ID!
-    $itemId: ID!
-    $fieldId: ID!
-    $text: String!
-  ) {
-    updateProjectV2ItemFieldValue(
+export const ADD_PROJECT_V2_ITEM = gql`
+  mutation AddProjectV2Item($projectId: ID!, $contentId: ID) {
+    addProjectV2Item(
       input: {
         projectId: $projectId
-        itemId: $itemId
-        fieldId: $fieldId
-        value: { text: $text }
+        contentId: $contentId
       }
     ) {
-      projectV2Item {
+      item {
         id
       }
     }

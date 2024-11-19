@@ -111,118 +111,11 @@
         throw new Error('Status field ID is undefined');
       }
 
-      if (!card && request !== "addCard") {
-        throw new Error('Card is undefined');
-      }
-
-      if (!card?.id && request !== "addCard") {
-        throw new Error('Card ID is undefined');
-      }
-
       switch (request) {
-        case "addCard":
-          if (!payload?.columnId) {
-            throw new Error('Column ID is undefined');
-          }
-          await addItem({
-            variables: {
-              projectId: project.id,
-              contentId: null,
-              fieldId: statusField.id,
-              value: payload.columnId
-            },
-          });
-          break;
-
-        case "deleteCard":
-          await deleteItem({ 
-            variables: { 
-              projectId: project.id,
-              itemId: card.id 
-            } 
-          });
-          break;
-
-        case "editCard":
-          if (!payload?.columnId) {
-            throw new Error('Column ID is undefined');
-          }
-          await updateItemField({
-            variables: {
-              projectId: project.id,
-              itemId: card.id,
-              fieldId: statusField.id,
-              value: payload.columnId
-            },
-          });
-          break;
-
-        case "convertToIssue":
-          try {
-            console.log("Starting convertToIssue mutation");
-            console.log("Project data:", project);
-            
-            // Get repository ID - first check if it's a repository project
-            let repoId = $projectInfo.data?.repository?.id;
-            
-            // If no repository ID found (user/org project), we need to specify a repository
-            if (!repoId) {
-              // Show repository picker dialog
-              const result = await vscode.window.showQuickPick(
-                $projectInfo.data.viewer.repositories.nodes.map(repo => ({
-                  label: repo.name,
-                  id: repo.id
-                })),
-                {
-                  placeHolder: 'Select a repository to create the issue in'
-                }
-              );
-              
-              if (!result) {
-                throw new Error('No repository selected');
-              }
-              
-              repoId = result.id;
-            }
-
-            console.log("Using repository ID:", repoId);
-            
-            if (!repoId) {
-              throw new Error('Repository ID not found');
-            }
-
-            console.log("Creating issue with params:", {
-              repositoryId: repoId,
-              title: payload.title,
-              body: payload.body
-            });
-
-            // Create the issue
-            const { data: issueData } = await convertToIssue({
-              variables: {
-                repositoryId: repoId,
-                title: payload.title,
-                body: payload.body
-              }
-            });
-            
-            if (!issueData?.createIssue?.issue?.id) {
-              throw new Error('Failed to create issue');
-            }
-            
-            console.log("Issue creation response:", issueData);
-          } catch (error) {
-            console.error("Error in convertToIssue:", error);
-            throw error;
-          }
-          break;
-
         case "editTitle":
-          console.log("Available fields:", fields);
-          
           const titleField = fields.find(f => 
-            f.name === "Title" && 
-            f.__typename === "ProjectV2Field"
+            f.__typename === "ProjectV2Field" && 
+            f.name === "Title"
           );
           
           console.log("Found title field:", titleField);
@@ -236,17 +129,25 @@
               projectId: project.id,
               itemId: card.id,
               fieldId: titleField.id,
-              text: payload.title
+              value: { text: payload.title }
             },
           });
           break;
 
-        default:
+        case "editCard":
+          await updateItemField({
+            variables: {
+              projectId: project.id,
+              itemId: card.id,
+              fieldId: statusField.id,
+              value: { singleSelectOptionId: payload.columnId }
+            },
+          });
           break;
       }
     } catch (error) {
       console.error('Card mutation error:', error);
-      throw error; // Re-throw to allow handling by the caller
+      throw error;
     }
   }
 
