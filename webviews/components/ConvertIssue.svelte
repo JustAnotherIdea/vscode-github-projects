@@ -15,27 +15,27 @@
 
   const convertIssue = async () => {
     try {
+      console.log("Converting issue:", message);
       if (!message?.note) {
         error = "Title is required";
         return;
       }
 
-      if (!message.project?.id) {
+      if (!message?.project?.id) {
         error = "Project ID is missing";
         return;
       }
 
-      const result = await handlers.cardMutations(message.card_info, "convertToIssue", {
-        body: body,
+      await handlers.cardMutations(message.card_info, "convertToIssue", {
         title: message.note,
+        body: body,
         projectId: message.project.id
       });
 
-      console.log("Conversion result:", result);
       close();
     } catch (e) {
-      console.error('Conversion error details:', e);
-      error = e.message || "Failed to convert to issue";
+      console.log("Conversion error details:", e);
+      error = e.message;
     }
   };
 </script>

@@ -69,13 +69,23 @@
     console.log("Column info:", column_info);
     console.log("Project:", column_info.project);
     
+    const repository = column_info.project.repositories?.nodes?.[0] || {
+      id: column_info.project.repository?.id
+    };
+    
+    if (!repository?.id) {
+      console.error('No repository found for this project');
+      return;
+    }
+    
     open(ConvertIssue, 
       {
         message: { 
           card_info, 
           column_info,
           note: title,
-          project: column_info.project
+          project: column_info.project,
+          repository
         },
         handlers
       }

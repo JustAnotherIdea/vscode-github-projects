@@ -155,9 +155,15 @@
           break;
 
         case "convertToIssue":
+          const repository = project.repositories?.nodes?.[0];
+          
+          if (!repository?.id) {
+            throw new Error('No repository found for this project. Please link a repository first.');
+          }
+
           await convertToIssue({
             variables: {
-              repositoryId: payload.id,
+              repositoryId: repository.id,
               title: payload.title,
               body: payload.body
             }

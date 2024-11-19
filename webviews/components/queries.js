@@ -144,28 +144,31 @@ export const GET_CONTAINER_WITH_PROJECT = gql`
 `;
 
 export const GET_REPO_PROJECT_INFO = gql`
-  query GetRepoProjectInfo($name: String!, $owner: String!, $number: Int!) {
-    repository(name: $name, owner: $owner) {
+  query GetRepoProjectInfo($owner: String!, $name: String!, $number: Int!) {
+    repository(owner: $owner, name: $name) {
       projectV2(number: $number) {
         id
         title
         shortDescription
         url
+        repositories(first: 10) {
+          nodes {
+            id
+            name
+          }
+        }
         fields(first: 20) {
           nodes {
-            ... on ProjectV2FieldCommon {
+            ... on ProjectV2Field {
               id
               name
-              __typename
             }
             ... on ProjectV2SingleSelectField {
               id
               name
-              __typename
               options {
                 id
                 name
-                __typename
               }
             }
           }
@@ -192,7 +195,9 @@ export const GET_REPO_PROJECT_INFO = gql`
                       name
                       __typename
                     }
+
                   }
+
                 }
               }
             }
@@ -224,21 +229,24 @@ export const GET_ORG_PROJECT_INFO = gql`
         title
         shortDescription
         url
+        repositories(first: 10) {
+          nodes {
+            id
+            name
+          }
+        }
         fields(first: 20) {
           nodes {
-            ... on ProjectV2FieldCommon {
+            ... on ProjectV2Field {
               id
               name
-              __typename
             }
             ... on ProjectV2SingleSelectField {
               id
               name
-              __typename
               options {
                 id
                 name
-                __typename
               }
             }
           }
@@ -246,40 +254,30 @@ export const GET_ORG_PROJECT_INFO = gql`
         items(first: 100) {
           nodes {
             id
-            fieldValues(first: 100) {
-              nodes {
-                __typename
-                ... on ProjectV2ItemFieldTextValue {
-                  text
-                  field {
-                    ... on ProjectV2FieldCommon {
-                      name
-                      __typename
-                    }
-                  }
-                }
-                ... on ProjectV2ItemFieldSingleSelectValue {
-                  name
-                  field {
-                    ... on ProjectV2FieldCommon {
-                      name
-                      __typename
-                    }
-                  }
-                }
-              }
-            }
             content {
               ... on DraftIssue {
                 title
+                __typename
               }
               ... on Issue {
                 title
-                url
+                __typename
               }
               ... on PullRequest {
                 title
-                url
+                __typename
+              }
+            }
+            fieldValues(first: 8) {
+              nodes {
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                  field {
+                    ... on ProjectV2SingleSelectField {
+                      name
+                    }
+                  }
+                }
               }
             }
           }
@@ -297,12 +295,17 @@ export const GET_USER_PROJECT_INFO = gql`
         title
         shortDescription
         url
+        repositories(first: 10) {
+          nodes {
+            id
+            name
+          }
+        }
         fields(first: 20) {
           nodes {
             ... on ProjectV2Field {
               id
               name
-              __typename
             }
             ... on ProjectV2SingleSelectField {
               id
@@ -311,7 +314,6 @@ export const GET_USER_PROJECT_INFO = gql`
                 id
                 name
               }
-              __typename
             }
           }
         }
@@ -325,25 +327,15 @@ export const GET_USER_PROJECT_INFO = gql`
               }
               ... on Issue {
                 title
-                url
                 __typename
               }
               ... on PullRequest {
                 title
-                url
                 __typename
               }
             }
-            fieldValues(first: 20) {
+            fieldValues(first: 8) {
               nodes {
-                ... on ProjectV2ItemFieldTextValue {
-                  text
-                  field {
-                    ... on ProjectV2Field {
-                      name
-                    }
-                  }
-                }
                 ... on ProjectV2ItemFieldSingleSelectValue {
                   name
                   field {
@@ -355,12 +347,6 @@ export const GET_USER_PROJECT_INFO = gql`
               }
             }
           }
-        }
-      }
-      repositories(first: 100) {
-        nodes {
-          id
-          name
         }
       }
     }
@@ -440,4 +426,24 @@ export const ADD_PROJECT_V2_ITEM = gql`
     }
   }
 `;
+
+export const GET_PROJECT_INFO = gql`
+  query GetProjectInfo($login: String!, $number: Int!) {
+    viewer {
+      projectV2(number: $number) {
+        id
+        title
+        repositories(first: 10) {
+          nodes {
+            id
+            name
+          }
+        }
+        # ... rest of your existing query fields
+      }
+    }
+  }
+`;
+
+
 
