@@ -67,13 +67,15 @@
     console.log("Converting to issue with title:", title);
     console.log("Card info:", card_info);
     console.log("Column info:", column_info);
+    console.log("Project:", column_info.project);
     
     open(ConvertIssue, 
       {
         message: { 
           card_info, 
-          column_info, 
-          note: title 
+          column_info,
+          note: title,
+          project: column_info.project
         },
         handlers
       }

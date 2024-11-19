@@ -16,6 +16,7 @@
   let draggable = true;
 
   $: {
+    console.log("Board received project:", project);
     if (prevColumns !== columns) {
       prevColumns = columns;
       filteredColumns = columns.map(column => ({
@@ -117,7 +118,8 @@
                 column_info={{ 
                   id: column.id,
                   name: column.name,
-                  statusField: statusField
+                  statusField: statusField,
+                  project: project
                 }}
                 {handlers}
                 on:message={handleMessage}

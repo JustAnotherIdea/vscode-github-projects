@@ -43,7 +43,9 @@
           ? $projectInfo.data.organization.projectV2
           : $projectInfo.data.viewer.projectV2;
       
-      console.log("Project:", project);
+      console.log("Full Project Object:", project);
+      console.log("Project ID:", project?.id);
+      console.log("Project Type:", type);
 
       if (project) {
         fields = project.fields.nodes;
@@ -118,8 +120,6 @@
             f.name === "Title"
           );
           
-          console.log("Found title field:", titleField);
-          
           if (!titleField?.id) {
             throw new Error('Title field not found');
           }
@@ -142,6 +142,25 @@
               fieldId: statusField.id,
               value: { singleSelectOptionId: payload.columnId }
             },
+          });
+          break;
+
+        case "deleteCard":
+          await deleteItem({
+            variables: {
+              projectId: project.id,
+              itemId: card.id
+            }
+          });
+          break;
+
+        case "convertToIssue":
+          await convertToIssue({
+            variables: {
+              repositoryId: payload.id,
+              title: payload.title,
+              body: payload.body
+            }
           });
           break;
       }

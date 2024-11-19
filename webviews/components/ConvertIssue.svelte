@@ -20,7 +20,7 @@
         return;
       }
 
-      if (!message.column_info?.project?.id) {
+      if (!message.project?.id) {
         error = "Project ID is missing";
         return;
       }
@@ -28,7 +28,7 @@
       const result = await handlers.cardMutations(message.card_info, "convertToIssue", {
         body: body,
         title: message.note,
-        projectId: message.column_info.project.id
+        projectId: message.project.id
       });
 
       console.log("Conversion result:", result);
