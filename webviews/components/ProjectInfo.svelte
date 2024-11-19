@@ -232,7 +232,7 @@
 {:else if $projectInfo.error}
   Error: {$projectInfo.error.message}
 {:else}
-  <div class="h-screen flex flex-col">
+  <div class="h-screen flex flex-col m-0 p-0">
     <Modal>
       <div 
         on:click={handleBackPressed} 
