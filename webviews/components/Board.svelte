@@ -129,7 +129,15 @@
             {/if}
           </div>
           <Modal>
-            <AddCardContent {column} {handlers} />
+            <AddCardContent 
+              {column} 
+              {handlers} 
+              on:addCard={(event) => {
+                console.log('AddCard event received:', event.detail);
+                console.log('Column:', column);
+                console.log('Handlers:', handlers);
+              }}
+            />
           </Modal>
         </div>
       {/each}

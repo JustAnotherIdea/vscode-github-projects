@@ -2,7 +2,8 @@
 	"name": "vscode-github-projects",
 	"displayName": "vscode-github-projects",
 	"description": "VS code extension that brings GitHub's projects into VS code.",
-	"version": "0.0.1",
+	"publisher": "vscode-github-projects",
+	"version": "0.1.0",
 	"engines": {
 		"vscode": "^1.53.0"
 	},

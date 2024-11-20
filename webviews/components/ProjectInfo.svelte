@@ -105,15 +105,50 @@
 
   async function handleCardMutations(card, request, payload) {
     try {
+      console.log('handleCardMutations called with:', {
+        card,
+        request,
+        payload
+      });
+      
       if (!project?.id) {
+        console.error('Project ID is undefined:', project);
         throw new Error('Project ID is undefined');
       }
 
       if (!statusField?.id) {
+        console.error('Status field is undefined:', statusField);
         throw new Error('Status field ID is undefined');
       }
 
       switch (request) {
+        case "addCard":
+          console.log('Adding card with payload:', payload);
+          console.log('Status field:', statusField);
+          console.log('Project:', project);
+          
+          // First create the draft item
+          const result = await addItem({
+            variables: {
+              projectId: project.id,
+              title: payload.note
+            }
+          });
+          console.log('Add card mutation result:', result);
+
+          // Then set its status
+          if (result?.data?.addProjectV2DraftIssue?.projectItem?.id) {
+            await updateItemField({
+              variables: {
+                projectId: project.id,
+                itemId: result.data.addProjectV2DraftIssue.projectItem.id,
+                fieldId: statusField.id,
+                value: { singleSelectOptionId: payload.colId }
+              }
+            });
+          }
+          break;
+
         case "editTitle":
           const titleField = fields.find(f => 
             f.__typename === "ProjectV2Field" && 
@@ -207,6 +242,11 @@
       }
     } catch (error) {
       console.error('Card mutation error:', error);
+      console.error('Error details:', {
+        stack: error.stack,
+        graphQLErrors: error.graphQLErrors,
+        networkError: error.networkError
+      });
       throw error;
     }
   }
