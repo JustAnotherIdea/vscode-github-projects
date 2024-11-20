@@ -50,14 +50,16 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run build",
-		"build": "npm run build:extension && npm run build:webview",
+		"build": "npm run build:extension && npm run build:webview && npm run build:tailwind",
 		"build:extension": "webpack --mode production",
 		"build:webview": "rollup -c",
 		"watch": "concurrently \"npm run watch:extension\" \"npm run watch:webview\" \"npm run watch:tailwind\"",
 		"watch:extension": "webpack --mode development --watch",
 		"watch:webview": "rollup -c -w",
 		"watch:tailwind": "tailwindcss -i ./webviews/styles/app.css -o ./out/compiled/tailwind.css --watch",
-		"build:tailwind": "tailwindcss -i ./webviews/styles/app.css -o ./out/compiled/tailwind.css"
+		"build:tailwind": "tailwindcss -i ./webviews/styles/app.css -o ./out/compiled/tailwind.css",
+		"package": "npm run build && vsce package",
+		"deploy": "vsce publish"
 	},
 	"devDependencies": {
 		"@rollup/plugin-commonjs": "^17.1.0",
@@ -70,6 +72,7 @@
 		"@types/vscode": "^1.53.0",
 		"@typescript-eslint/eslint-plugin": "^4.14.1",
 		"@typescript-eslint/parser": "^4.14.1",
+		"@vscode/vsce": "^3.2.1",
 		"autoprefixer": "^10.4.20",
 		"concurrently": "^5.3.0",
 		"eslint": "^7.19.0",
