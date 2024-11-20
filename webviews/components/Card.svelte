@@ -52,15 +52,8 @@
   };
 
   const archiveCard = () => {
-    const archivedStatus = column_info.statusField.options.find(opt => 
-      opt.name.toLowerCase().includes("archived")
-    );
-
-    if (archivedStatus) {
-      handlers.cardMutations(card_info, "editCard", { 
-        columnId: archivedStatus.id
-      });
-    }
+    console.log('Archiving card:', card_info);
+    handlers.cardMutations(card_info, "archiveCard");
   };
 
   const convertToIssue = () => {

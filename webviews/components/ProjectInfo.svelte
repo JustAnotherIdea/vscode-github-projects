@@ -102,6 +102,7 @@
   const deleteItem = mutation(queries.DELETE_PROJECT_V2_ITEM);
   const updateItemField = mutation(queries.UPDATE_PROJECT_V2_ITEM_FIELD);
   const convertToIssue = mutation(queries.CREATE_ISSUE);
+  const archiveItem = mutation(queries.ARCHIVE_PROJECT_V2_ITEM);
 
   async function handleCardMutations(card, request, payload) {
     try {
@@ -181,12 +182,28 @@
           break;
 
         case "deleteCard":
-          await deleteItem({
-            variables: {
+          console.log('Deleting card:', card);
+          console.log('Project ID:', project.id);
+          console.log('Card ID:', card.id);
+          
+          try {
+            const deleteResult = await deleteItem({
+              variables: {
+                projectId: project.id,
+                itemId: card.id
+              }
+            });
+            console.log('Delete result:', deleteResult);
+          } catch (error) {
+            console.error('Delete error:', error);
+            console.error('Delete error details:', {
+              cardData: card,
               projectId: project.id,
-              itemId: card.id
-            }
-          });
+              errorMessage: error.message,
+              graphQLErrors: error.graphQLErrors
+            });
+            throw error;
+          }
           break;
 
         case "convertToIssue":
@@ -237,6 +254,29 @@
                 value: { singleSelectOptionId: statusField.options.find(opt => opt.name === currentStatus.name).id }
               }
             });
+          }
+          break;
+
+        case "archiveCard":
+          console.log('Archiving card:', card);
+          
+          try {
+            const archiveResult = await archiveItem({
+              variables: {
+                projectId: project.id,
+                itemId: card.id
+              }
+            });
+            console.log('Archive result:', archiveResult);
+          } catch (error) {
+            console.error('Archive error:', error);
+            console.error('Archive error details:', {
+              cardData: card,
+              projectId: project.id,
+              errorMessage: error.message,
+              graphQLErrors: error.graphQLErrors
+            });
+            throw error;
           }
           break;
       }

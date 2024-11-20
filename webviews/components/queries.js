@@ -401,12 +401,10 @@ export const UPDATE_PROJECT_V2_ITEM_FIELD = gql`
 
 export const DELETE_PROJECT_V2_ITEM = gql`
   mutation DeleteProjectV2Item($projectId: ID!, $itemId: ID!) {
-    deleteProjectV2Item(
-      input: {
-        projectId: $projectId
-        itemId: $itemId
-      }
-    ) {
+    deleteProjectV2Item(input: {
+      projectId: $projectId,
+      itemId: $itemId
+    }) {
       deletedItemId
     }
   }
@@ -438,6 +436,19 @@ export const GET_PROJECT_INFO = gql`
           }
         }
         # ... rest of your existing query fields
+      }
+    }
+  }
+`;
+
+export const ARCHIVE_PROJECT_V2_ITEM = gql`
+  mutation ArchiveProjectV2Item($projectId: ID!, $itemId: ID!) {
+    archiveProjectV2Item(input: {
+      projectId: $projectId,
+      itemId: $itemId
+    }) {
+      item {
+        id
       }
     }
   }
