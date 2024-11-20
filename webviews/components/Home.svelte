@@ -10,7 +10,7 @@
   const vscode = getVsCodeApi();
 
   let session;
-
+  let currentRepo;
   let filters = ["Repository"];
 
   window.addEventListener("message", async (event) => {
@@ -24,6 +24,9 @@
         break;
       case "returnSession":
         session = message.payload.session;
+        break;
+      case "setCurrentRepo":
+        currentRepo = message.payload.repo;
         break;
     }
   });
@@ -65,7 +68,7 @@
   <!-- When webview is reloaded, client is not defined. -->
   <p>Client is not set, Sign In with GitHub first.</p>
 {:else if !selectedProject}
-  <ProjectsList on:message={handleMessage} {filters} />
+  <ProjectsList on:message={handleMessage} {filters} {currentRepo} />
 {:else if selectedContainer.type === "repo"}
   <ProjectInfo
     type="repo"

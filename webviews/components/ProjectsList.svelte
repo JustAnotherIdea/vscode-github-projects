@@ -10,12 +10,14 @@
   });
 
   export let filters = [];
+  export let currentRepo;
 
   let containers = [];
   let indexes = [];
 
   $: {
     if ($containersInfo.data) {
+      console.log("Current Repo:", currentRepo);
       console.log("Raw Data:", $containersInfo.data);
       console.log("Viewer Projects:", $containersInfo.data.viewer.projectsV2?.nodes);
       console.log("Repositories:", $containersInfo.data.viewer.repositories?.nodes);
@@ -31,6 +33,14 @@
       ) {
         console.log("Processing repositories...");
         for (let repo of $containersInfo.data.viewer.repositories.nodes) {
+          console.log("Checking repo:", repo.name);
+          console.log("Against currentRepo:", currentRepo?.name);
+          
+          if (currentRepo && repo.name !== currentRepo.name) {
+            console.log("Skipping non-matching repo");
+            continue;
+          }
+
           const hasProjects = repo.projectsV2?.nodes?.length > 0;
           const isLinkedToProjects = $containersInfo.data.viewer.projectsV2?.nodes?.some(
             project => project.repositories?.nodes?.some(r => r.id === repo.id)

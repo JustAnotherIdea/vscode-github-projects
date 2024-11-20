@@ -20,6 +20,10 @@ export class HomePanel {
       ? vscode.window.activeTextEditor.viewColumn
       : undefined;
 
+    // Get current workspace info
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    const repoName = workspaceFolder?.name;
+
     // If we already have a panel, show it.
     if (HomePanel.currentPanel) {
       HomePanel.currentPanel._panel.reveal(column);
@@ -27,6 +31,12 @@ export class HomePanel {
       HomePanel.currentPanel._panel.webview.postMessage({
         command: "authComplete",
         payload: { session: data.session },
+      });
+
+      // Send current repo info
+      HomePanel.currentPanel._panel.webview.postMessage({
+        command: "setCurrentRepo",
+        payload: { repo: { name: repoName } },
       });
 
       return;
@@ -59,6 +69,12 @@ export class HomePanel {
     HomePanel.currentPanel._panel.webview.postMessage({
       command: "authComplete",
       payload: { session: data.session },
+    });
+
+    // Send current repo info
+    HomePanel.currentPanel._panel.webview.postMessage({
+      command: "setCurrentRepo",
+      payload: { repo: { name: repoName } },
     });
   }
 
