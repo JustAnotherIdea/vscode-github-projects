@@ -16,7 +16,10 @@
 
   $: {
     if ($containersInfo.data) {
-      console.log("Data:", $containersInfo.data);
+      console.log("Raw Data:", $containersInfo.data);
+      console.log("Viewer Projects:", $containersInfo.data.viewer.projectsV2?.nodes);
+      console.log("Repositories:", $containersInfo.data.viewer.repositories?.nodes);
+      
       containers = [];
       if (filters.includes("Personal Profile")) {
         let newUser = addType($containersInfo.data.viewer, "user");
@@ -26,9 +29,25 @@
         $containersInfo.data.viewer.repositories &&
         filters.includes("Repository")
       ) {
+        console.log("Processing repositories...");
         for (let repo of $containersInfo.data.viewer.repositories.nodes) {
-          let newRepo = addType(repo, "repo");
-          containers = [...containers, newRepo];
+          const hasProjects = repo.projectsV2?.nodes?.length > 0;
+          const isLinkedToProjects = $containersInfo.data.viewer.projectsV2?.nodes?.some(
+            project => project.repositories?.nodes?.some(r => r.id === repo.id)
+          );
+          
+          console.log(`Repository ${repo.name}:`, {
+            hasProjects,
+            isLinkedToProjects,
+            projectsV2: repo.projectsV2?.nodes,
+            linkedProjects: $containersInfo.data.viewer.projectsV2?.nodes
+              ?.filter(p => p.repositories?.nodes?.some(r => r.id === repo.id))
+          });
+          
+          if (hasProjects || isLinkedToProjects) {
+            let newRepo = addType(repo, "repo");
+            containers = [...containers, newRepo];
+          }
         }
       }
       if (
@@ -54,6 +73,11 @@
           });
         }
       });
+      console.log("Final containers:", containers);
+      console.log("Container projects:", containers.map(c => ({
+        name: c.name || c.login,
+        projects: c.projects?.nodes
+      })));
       console.log("Containers:", containers);
     }
   }

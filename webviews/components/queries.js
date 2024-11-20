@@ -91,50 +91,41 @@ export const EDIT_COLUMN = gql`
 `;
 
 export const GET_CONTAINER_WITH_PROJECT = gql`
-  query GetContainerWithProject {
+  query {
     viewer {
       login
-      projectsV2(first: 20) {
-        nodes {
-          id
-          title
-          shortDescription
-          number
-          closed
-          url
-        }
-      }
-      repositories(first: 20) {
+      repositories(first: 100) {
         nodes {
           id
           name
           owner {
             login
           }
-          projectsV2(first: 20) {
+          projectsV2(first: 10) {
             nodes {
               id
               title
-              shortDescription
               number
+              shortDescription
               closed
-              url
             }
           }
         }
       }
-      organizations(first: 20) {
+      projectsV2(first: 20) {
         nodes {
           id
-          login
-          projectsV2(first: 20) {
+          title
+          number
+          shortDescription
+          closed
+          repositories(first: 10) {
             nodes {
               id
-              title
-              shortDescription
-              number
-              closed
-              url
+              name
+              owner {
+                login
+              }
             }
           }
         }
